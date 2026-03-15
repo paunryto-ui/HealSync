@@ -1,0 +1,3060 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealSync — AI Health Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080e0a;
+  --bg2: #0c1410;
+  --surface: #101a12;
+  --surface2: #141f16;
+  --surface3: #192419;
+  --border: #1e2d1f;
+  --border2: #263528;
+  --text: #dce8dc;
+  --text-muted: #7a9478;
+  --text-dim: #3a4f3b;
+  --sage: #8ab88a;
+  --green: #4ecb71;
+  --green-bright: #5dde82;
+  --green-dim: rgba(78,203,113,0.07);
+  --green-glow: rgba(78,203,113,0.18);
+  --moss: #2d5c30;
+  --amber: #e8a84c;
+  --amber-dim: rgba(232,168,76,0.08);
+  --red: #e85c5c;
+  --red-dim: rgba(232,92,92,0.08);
+  --teal: #4ecbbf;
+  --teal-dim: rgba(78,203,191,0.07);
+  --lavender: #9b8ecb;
+}
+
+/* ─── LIGHT THEME ─── */
+[data-theme="light"] {
+  --bg: #f5f7f5;
+  --bg2: #eef2ee;
+  --surface: #ffffff;
+  --surface2: #f0f4f0;
+  --surface3: #e8ede8;
+  --border: #d4e0d4;
+  --border2: #c8d8c8;
+  --text: #1a2b1a;
+  --text-muted: #4a6b4a;
+  --text-dim: #8aaa8a;
+  --sage: #4a7c4a;
+  --green: #2d9e50;
+  --green-bright: #38b85f;
+  --green-dim: rgba(45,158,80,0.08);
+  --green-glow: rgba(45,158,80,0.2);
+  --moss: #235a26;
+  --amber: #b87820;
+  --amber-dim: rgba(184,120,32,0.08);
+  --red: #cc3333;
+  --red-dim: rgba(204,51,51,0.07);
+  --teal: #1e8f88;
+  --teal-dim: rgba(30,143,136,0.07);
+  --lavender: #6b5db0;
+}
+
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(45,158,80,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(30,143,136,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(35,90,38,0.03) 0%, transparent 70%);
+}
+
+[data-theme="light"] .topbar {
+  background: rgba(245,247,245,0.85) !important;
+}
+
+[data-theme="light"] .preview-img-overlay {
+  background: linear-gradient(transparent, rgba(245,247,245,0.95)) !important;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Organic background texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(78,203,113,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(78,203,191,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(45,92,48,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle noise texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-leaf {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--moss), var(--green));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(78,203,113,0.2);
+}
+
+.logo-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.logo-tagline {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  font-family: 'DM Mono', monospace;
+  margin-top: 3px;
+}
+
+.nav-section {
+  padding: 20px 16px 8px;
+  flex: 1;
+}
+
+.nav-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-family: 'DM Mono', monospace;
+  padding: 0 8px;
+  margin-bottom: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 2px;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.nav-item.active {
+  background: var(--green-dim);
+  border-color: rgba(78,203,113,0.2);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--green);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px var(--green-glow);
+}
+
+.nav-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--surface3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.nav-item.active .nav-icon {
+  background: var(--green-dim);
+  box-shadow: 0 0 12px rgba(78,203,113,0.15);
+}
+
+.nav-text { flex: 1; }
+.nav-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.2s;
+  line-height: 1.2;
+}
+
+.nav-item.active .nav-title,
+.nav-item:hover .nav-title { color: var(--text); }
+
+.nav-item.active .nav-title { color: var(--green); }
+
+.nav-sub {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+  font-family: 'DM Mono', monospace;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.disclaimer-box {
+  background: var(--amber-dim);
+  border: 1px solid rgba(232,168,76,0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--amber);
+  line-height: 1.5;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ─── MAIN ─── */
+.main {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TOPBAR ─── */
+.topbar {
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(8,14,10,0.8);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.topbar-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-family: 'DM Mono', monospace;
+}
+
+.topbar-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--green-dim);
+  border: 1px solid rgba(78,203,113,0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--green);
+  font-family: 'DM Mono', monospace;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s ease infinite;
+}
+
+/* ─── CONTENT ─── */
+.content {
+  padding: 40px;
+  max-width: 820px;
+  width: 100%;
+}
+
+.mode-panel { display: none; }
+.mode-panel.active { display: block; animation: fadeUp 0.4s ease both; }
+
+/* ─── SHARED COMPONENTS ─── */
+.section-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.mode-hero {
+  margin-bottom: 36px;
+}
+
+.mode-hero h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 10px;
+}
+
+.mode-hero h2 em {
+  font-style: italic;
+  color: var(--green);
+}
+
+.mode-hero p {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 560px;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+/* Form Elements */
+.form-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+  letter-spacing: 0.3px;
+}
+
+.input, textarea.input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+}
+
+.input:focus, textarea.input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(78,203,113,0.08);
+}
+
+.input::placeholder, textarea.input::placeholder { color: var(--text-dim); }
+
+.form-group { margin-bottom: 16px; }
+
+/* Chip grid */
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 7px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+  color: var(--text-muted);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.chip:hover { border-color: var(--sage); color: var(--text); }
+.chip.active {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* Slider */
+.slider-wrap { display: flex; align-items: center; gap: 12px; }
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--green);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(78,203,113,0.4);
+}
+.slider-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--green);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Upload Zone */
+.upload-zone {
+  background: var(--surface2);
+  border: 2px dashed var(--border2);
+  border-radius: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+.upload-zone input[type=file] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.upload-zone-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+.upload-zone h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.upload-zone p { font-size: 13px; color: var(--text-muted); }
+
+.preview-img-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  margin-top: 12px;
+}
+.preview-img-wrap img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+.preview-img-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 16px;
+  background: linear-gradient(transparent, rgba(8,14,10,0.95));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.preview-fname { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+/* Primary Button */
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, var(--moss), var(--green));
+  color: #080e0a;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  letter-spacing: -0.2px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.btn-primary:hover::after { opacity: 1; }
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(78,203,113,0.25);
+}
+.btn-primary:active { transform: none; }
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px 18px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
+
+/* Loading */
+.loading-state {
+  text-align: center;
+  padding: 48px 24px;
+  display: none;
+}
+.loading-state.show { display: block; }
+
+.leaf-loader {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 20px;
+  position: relative;
+}
+.leaf-loader::before, .leaf-loader::after {
+  content: '🌿';
+  position: absolute;
+  font-size: 24px;
+  animation: leafSpin 1.5s ease-in-out infinite;
+}
+.leaf-loader::after { animation-delay: 0.75s; opacity: 0.5; }
+
+.loading-msg {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.loading-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+}
+
+/* Result Components */
+.result-box {
+  display: none;
+}
+.result-box.show { display: block; animation: fadeUp 0.5s ease both; }
+
+.verdict-banner {
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  border: 1px solid;
+  position: relative;
+  overflow: hidden;
+}
+.verdict-banner::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  opacity: 0.06;
+}
+.verdict-banner.good { background: var(--green-dim); border-color: rgba(78,203,113,0.2); }
+.verdict-banner.good::after { background: var(--green); }
+.verdict-banner.warn { background: var(--amber-dim); border-color: rgba(232,168,76,0.2); }
+.verdict-banner.warn::after { background: var(--amber); }
+.verdict-banner.bad { background: var(--red-dim); border-color: rgba(232,92,92,0.2); }
+.verdict-banner.bad::after { background: var(--red); }
+
+.verdict-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.verdict-banner.good .verdict-label { color: var(--green); }
+.verdict-banner.warn .verdict-label { color: var(--amber); }
+.verdict-banner.bad .verdict-label { color: var(--red); }
+
+.verdict-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+.verdict-banner.good .verdict-heading { color: var(--green); }
+.verdict-banner.warn .verdict-heading { color: var(--amber); }
+.verdict-banner.bad .verdict-heading { color: var(--red); }
+
+.verdict-body { font-size: 14px; color: var(--text); line-height: 1.7; font-weight: 300; }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.result-card-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.metric-name { font-size: 13px; color: var(--text-muted); }
+.metric-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+.bar-track {
+  width: 100%;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1.2s ease;
+}
+
+.check-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.check-row.ok { background: var(--green-dim); border: 1px solid rgba(78,203,113,0.15); color: var(--green); }
+.check-row.caution { background: var(--amber-dim); border: 1px solid rgba(232,168,76,0.15); color: var(--amber); }
+.check-row.stop { background: var(--red-dim); border: 1px solid rgba(232,92,92,0.15); color: var(--red); }
+
+.check-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+.check-content { flex: 1; }
+.check-sub { font-size: 11px; opacity: 0.65; font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+.advice-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sage);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+.advice-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--sage);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.advice-body { font-size: 14px; color: var(--text-muted); line-height: 1.75; font-weight: 300; }
+
+.btn-reset {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 13px;
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.btn-reset:hover { border-color: var(--text-muted); color: var(--text-muted); }
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* Memory Timeline */
+.memory-bubble {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  position: relative;
+}
+.memory-bubble::before {
+  content: attr(data-who);
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+/* Star rating */
+.star-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.star {
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.15s, transform 0.15s;
+  filter: grayscale(1);
+}
+.star.active, .star:hover { opacity: 1; filter: none; transform: scale(1.1); }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(78,203,113,0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(78,203,113,0); }
+}
+@keyframes leafSpin {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+}
+
+/* Mobile */
+.hamburger {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 90;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main { margin-left: 0; }
+  .topbar { padding: 16px 20px; }
+  .content { padding: 24px 20px; }
+  .result-grid { grid-template-columns: 1fr; }
+  .hamburger { display: block; }
+  .overlay.show { display: block; }
+}
+
+/* Tag pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+.pill-remove {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.pill-remove:hover { opacity: 1; color: var(--red); }
+
+.pill-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+/* Progress steps */
+.step-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.step-num {
+  width: 28px;
+  height: 28px;
+  background: var(--green-dim);
+  border: 1px solid rgba(78,203,113,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--green);
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-content {}
+.step-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* Week Day Buttons */
+.day-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.day-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.day-btn.active {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* Section break spacing */
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.mt-8 { margin-top: 8px; }
+
+/* ─── FONT CLASSES ─── */
+body.font-dm { font-family: 'DM Sans', sans-serif; }
+body.font-outfit { font-family: 'Outfit', sans-serif; }
+body.font-inter { font-family: 'Inter', sans-serif; }
+body.font-syne { font-family: 'Syne', sans-serif; }
+body.font-raleway { font-family: 'Raleway', sans-serif; }
+
+/* ─── SETTINGS PANEL ─── */
+.settings-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 20px;
+}
+.settings-overlay.open { display: flex; }
+
+.settings-drawer {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.settings-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.settings-close {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.settings-close:hover { background: var(--surface3); color: var(--text); }
+
+.settings-body { padding: 20px 24px; }
+
+.settings-section {
+  margin-bottom: 28px;
+}
+
+.settings-section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* Theme toggle */
+.theme-toggle-row {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.theme-opt {
+  flex: 1;
+  padding: 11px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.theme-opt:not(:last-child) { border-right: 1px solid var(--border); }
+.theme-opt:hover { background: var(--surface2); color: var(--text); }
+.theme-opt.active { background: var(--green-dim); color: var(--green); }
+.theme-opt-icon { font-size: 18px; }
+
+/* Language grid */
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lang-opt {
+  padding: 10px 8px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  text-align: center;
+}
+.lang-opt:hover { border-color: var(--sage); color: var(--text); }
+.lang-opt.active { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.lang-flag { font-size: 20px; }
+
+/* Font options */
+.font-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.font-opt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.font-opt-row:hover { border-color: var(--sage); }
+.font-opt-row.active { border-color: var(--green); background: var(--green-dim); }
+.font-opt-name { font-size: 17px; font-weight: 600; color: var(--text); }
+.font-opt-meta { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-dim); margin-top: 1px; }
+.font-check { color: var(--green); font-size: 14px; opacity: 0; }
+.font-opt-row.active .font-check { opacity: 1; }
+
+/* ─── WORLD CLOCK ─── */
+.world-clock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.clock-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: border-color 0.2s;
+}
+.clock-card:hover { border-color: var(--border2); }
+.clock-city {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.clock-flag { font-size: 14px; margin-bottom: 2px; }
+.clock-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.clock-date { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.clock-card.is-local { border-color: rgba(78,203,113,0.3); }
+.clock-card.is-local .clock-time { color: var(--green); }
+
+/* ─── SETTINGS NAV ITEM ─── */
+.nav-item.settings-nav {
+  margin-top: auto;
+}
+
+/* ─── APP INFO ─── */
+.app-info-box {
+  text-align: center;
+  padding: 10px 0 4px;
+}
+.app-info-made {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.app-info-heart { color: #e85c5c; animation: heartbeat 1.4s ease infinite; }
+@keyframes heartbeat {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+.app-info-version {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: 'DM Mono', monospace;
+  margin-top: 3px;
+  opacity: 0.6;
+}
+
+/* ─── SETTINGS TOPBAR BTN ─── */
+.topbar-settings-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  color: var(--text-muted);
+}
+.topbar-settings-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+/* ─── WORLD CLOCK PANEL ─── */
+#panel-worldclock .clock-mini-local {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: var(--green);
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .settings-overlay { padding: 0; align-items: flex-end; }
+  .settings-drawer { border-radius: 20px 20px 0 0; max-height: 85vh; }
+  .lang-grid { grid-template-columns: repeat(2, 1fr); }
+  .world-clock-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="app-wrap">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-leaf">🌿</div>
+      <div>
+        <div class="logo-name">HealSync</div>
+        <div class="logo-tagline">AI HEALTH COMPANION</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label" data-i18n="nav_tools">Tools</div>
+
+      <div class="nav-item active" onclick="switchMode('food', this)">
+        <div class="nav-icon">📸</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_food">Analisis Makanan</div>
+          <div class="nav-sub" data-i18n="nav_food_sub">Foto → gizi + pantang</div>
+        </div>
+      </div>
+
+      <div class="nav-item" onclick="switchMode('sleep', this)">
+        <div class="nav-icon">🌙</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_sleep">Sleep Quality</div>
+          <div class="nav-sub" data-i18n="nav_sleep_sub">Decoder tidurmu</div>
+        </div>
+      </div>
+
+      <div class="nav-item" onclick="switchMode('mental', this)">
+        <div class="nav-icon">🧠</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_mental">Mental Load</div>
+          <div class="nav-sub" data-i18n="nav_mental_sub">Deteksi burnout</div>
+        </div>
+      </div>
+
+      <div class="nav-item" onclick="switchMode('meds', this)">
+        <div class="nav-icon">💊</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_meds">Cek Obat</div>
+          <div class="nav-sub" data-i18n="nav_meds_sub">Conflict checker</div>
+        </div>
+      </div>
+
+      <div class="nav-item" onclick="switchMode('recovery', this)">
+        <div class="nav-icon">🩹</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_recovery">Recovery Tracker</div>
+          <div class="nav-sub" data-i18n="nav_recovery_sub">Pasca sakit</div>
+        </div>
+      </div>
+
+      <div class="nav-item" onclick="switchMode('memory', this)">
+        <div class="nav-icon">📖</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_memory">Family Memory</div>
+          <div class="nav-sub" data-i18n="nav_memory_sub">Simpan cerita keluarga</div>
+        </div>
+      </div>
+
+      <div class="nav-item" onclick="openSettings()">
+        <div class="nav-icon">⚙️</div>
+        <div class="nav-text">
+          <div class="nav-title" data-i18n="nav_settings">Settings</div>
+          <div class="nav-sub" data-i18n="nav_settings_sub">Bahasa, font, tema</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="disclaimer-box" data-i18n="disclaimer">⚠ Bukan pengganti dokter. Konsultasikan ke tenaga medis untuk keputusan klinis.</div>
+      <div class="app-info-box" style="margin-top:10px;">
+        <div class="app-info-made">Made with <span class="app-info-heart">♥</span> by HealSync</div>
+        <div class="app-info-version">v1.0.0 · AI Health Companion</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button class="hamburger" onclick="openSidebar()">☰</button>
+        <div>
+          <div class="topbar-title" id="topbarTitle">Analisis Makanan</div>
+          <div class="topbar-sub" id="topbarSub">Foto makanan → gizi + cek kondisi kesehatan</div>
+        </div>
+      </div>
+      <div class="topbar-badge">
+        <div class="pulse-dot"></div>
+        AI Active
+      </div>
+      <button class="topbar-settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════════
+           MODE 1: ANALISIS MAKANAN
+      ══════════════════════════════════════ -->
+      <div class="mode-panel active" id="panel-food">
+        <div class="mode-hero">
+          <div class="section-eyebrow">Mode 1 · Foto Makanan</div>
+          <h2>Tau kandungan & <em>pantangan</em><br>sebelum makan</h2>
+          <p>Upload foto makanan Indonesia, AI langsung analisis gizi dan cek kesesuaian dengan kondisi kesehatanmu.</p>
+        </div>
+
+        <!-- Kondisi -->
+        <div class="card mb-24">
+          <div class="card-title">🩺 Kondisi kesehatanmu <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);font-weight:400;">(opsional)</span></div>
+          <div class="chip-grid" id="food-kondisi-grid">
+            <div class="chip" data-val="diabetes">🩸 Diabetes</div>
+            <div class="chip" data-val="hipertensi">💓 Hipertensi</div>
+            <div class="chip" data-val="kolesterol">🫀 Kolesterol</div>
+            <div class="chip" data-val="asam urat">🦵 Asam Urat</div>
+            <div class="chip" data-val="maag/GERD">🫄 Maag/GERD</div>
+            <div class="chip" data-val="ginjal">🫘 Ginjal</div>
+            <div class="chip" data-val="hamil">🤰 Hamil</div>
+            <div class="chip" data-val="diet">⚖️ Diet</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <input type="text" class="input" id="food-kondisi-input" placeholder="Kondisi lain (misal: alergi kacang)..." style="flex:1;">
+            <button class="btn-secondary" onclick="addCustomKondisi('food')">+ Tambah</button>
+          </div>
+          <div class="pill-list" id="food-custom-pills"></div>
+        </div>
+
+        <!-- Upload -->
+        <div class="card mb-24">
+          <div class="card-title">📸 Foto makanan</div>
+          <div class="upload-zone" id="food-zone">
+            <input type="file" accept="image/*" id="food-file" onchange="handleFoodImg(event)">
+            <span class="upload-zone-icon">🍽️</span>
+            <h4>Upload atau foto langsung</h4>
+            <p>JPG, PNG, WEBP · Makanan Indonesia supported</p>
+          </div>
+          <div id="food-preview" style="display:none;" class="preview-img-wrap">
+            <img id="food-img" src="" alt="preview">
+            <div class="preview-img-overlay">
+              <span class="preview-fname" id="food-fname"></span>
+              <button class="btn-secondary" onclick="resetFoodImg()">Ganti</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary mb-24" id="food-btn" onclick="analyzeFood()" disabled>
+          🔍 Analisis Sekarang
+        </button>
+
+        <!-- Loading -->
+        <div class="loading-state" id="food-loading">
+          <div class="leaf-loader"></div>
+          <div class="loading-msg">Menganalisis makananmu…</div>
+          <div class="loading-sub">AI sedang mengenali bahan dan kandungan gizi</div>
+        </div>
+
+        <!-- Results -->
+        <div class="result-box" id="food-result">
+          <div class="verdict-banner" id="food-verdict">
+            <div class="verdict-label" id="food-verdict-label"></div>
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+              <span id="food-emoji" style="font-size:40px;line-height:1;"></span>
+              <div>
+                <div id="food-makanan" style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;letter-spacing:-0.5px;line-height:1.1;"></div>
+                <div id="food-desc" style="font-size:13px;color:var(--text-muted);margin-top:4px;"></div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="verdict-heading" id="food-verdict-title"></div>
+            <div class="verdict-body" id="food-verdict-body"></div>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="result-card-title">⚡ Estimasi Gizi / Porsi</div>
+              <div id="food-nutrisi"></div>
+            </div>
+            <div class="result-card">
+              <div class="result-card-title">⚠️ Cek Kondisi</div>
+              <div id="food-pantang"></div>
+            </div>
+          </div>
+
+          <div class="advice-card">
+            <div class="advice-title">🌿 Saran HealSync</div>
+            <div class="advice-body" id="food-saran"></div>
+          </div>
+
+          <button class="btn-reset" onclick="resetMode('food')">← Analisis makanan lain</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           MODE 2: SLEEP QUALITY
+      ══════════════════════════════════════ -->
+      <div class="mode-panel" id="panel-sleep">
+        <div class="mode-hero">
+          <div class="section-eyebrow">Mode 2 · Sleep Quality</div>
+          <h2>Decode <em>pola tidurmu</em><br>yang tersembunyi</h2>
+          <p>Ceritakan kebiasaan tidurmu. AI temukan pattern dan kasih insight yang dokter tidur biasanya bilang.</p>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">🕐 Pola Tidur</div>
+          <div class="form-group">
+            <label class="form-label">Jam mulai tidur biasanya</label>
+            <input type="time" class="input" id="sleep-start" value="23:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jam bangun biasanya</label>
+            <input type="time" class="input" id="sleep-end" value="06:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Berapa kali terbangun semalam?</label>
+            <div class="slider-wrap">
+              <input type="range" min="0" max="10" value="2" id="sleep-wake" oninput="document.getElementById('sleep-wake-val').textContent=this.value+'x'">
+              <span class="slider-val" id="sleep-wake-val">2x</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seberapa segar saat bangun?</label>
+            <div class="star-row" id="sleep-fresh-stars">
+              <span class="star" onclick="setStar('sleep-fresh-stars',1)">😴</span>
+              <span class="star" onclick="setStar('sleep-fresh-stars',2)">😪</span>
+              <span class="star" onclick="setStar('sleep-fresh-stars',3)">😐</span>
+              <span class="star" onclick="setStar('sleep-fresh-stars',4)">😊</span>
+              <span class="star" onclick="setStar('sleep-fresh-stars',5)">😄</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">💭 Gejala & Kebiasaan</div>
+          <div class="form-group">
+            <label class="form-label">Gejala saat tidur (pilih yang sesuai)</label>
+            <div class="chip-grid" id="sleep-symptoms">
+              <div class="chip" data-val="mimpi buruk">😰 Mimpi buruk</div>
+              <div class="chip" data-val="mendengkur">😤 Mendengkur</div>
+              <div class="chip" data-val="keringat malam">💦 Keringat malam</div>
+              <div class="chip" data-val="sulit tertidur">🫤 Sulit tidur</div>
+              <div class="chip" data-val="kaki gelisah">🦵 Kaki gelisah</div>
+              <div class="chip" data-val="ngantuk siang">☀️ Ngantuk siang</div>
+              <div class="chip" data-val="tidur sambil ngomong">🗣 Ngomong saat tidur</div>
+              <div class="chip" data-val="sakit kepala pagi">🤕 Sakit kepala pagi</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kebiasaan sebelum tidur (pilih semua yang berlaku)</label>
+            <div class="chip-grid" id="sleep-habits">
+              <div class="chip" data-val="HP/medsos">📱 Scrolling HP</div>
+              <div class="chip" data-val="kopi/teh">☕ Kopi/teh</div>
+              <div class="chip" data-val="olahraga malam">🏃 Olahraga malam</div>
+              <div class="chip" data-val="makan berat">🍛 Makan berat</div>
+              <div class="chip" data-val="nonton">📺 Nonton</div>
+              <div class="chip" data-val="meditasi">🧘 Meditasi</div>
+              <div class="chip" data-val="baca buku">📚 Baca buku</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ceritakan lebih lanjut tentang tidurmu (opsional)</label>
+            <textarea class="input" id="sleep-notes" rows="3" placeholder="Misal: sering mimpi aneh, bangun jam 3 pagi terus gak bisa tidur lagi, posisi tidur sering berubah..."></textarea>
+          </div>
+        </div>
+
+        <button class="btn-primary mb-24" onclick="analyzeSleep()">🌙 Analisis Pola Tidur</button>
+
+        <div class="loading-state" id="sleep-loading">
+          <div class="leaf-loader"></div>
+          <div class="loading-msg">Membaca pola tidurmu…</div>
+          <div class="loading-sub">AI sedang mengidentifikasi masalah tersembunyi</div>
+        </div>
+
+        <div class="result-box" id="sleep-result">
+          <div class="verdict-banner" id="sleep-verdict">
+            <div class="verdict-label" id="sleep-verdict-label"></div>
+            <div class="verdict-heading" id="sleep-verdict-title"></div>
+            <div class="verdict-body" id="sleep-verdict-body"></div>
+          </div>
+          <div class="result-card mb-16">
+            <div class="result-card-title">🔍 Pattern yang Terdeteksi</div>
+            <div id="sleep-patterns"></div>
+          </div>
+          <div class="advice-card">
+            <div class="advice-title">🌿 Protokol Perbaikan Tidur</div>
+            <div class="advice-body" id="sleep-advice"></div>
+          </div>
+          <button class="btn-reset" onclick="resetMode('sleep')">← Analisis ulang</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           MODE 3: MENTAL LOAD
+      ══════════════════════════════════════ -->
+      <div class="mode-panel" id="panel-mental">
+        <div class="mode-hero">
+          <div class="section-eyebrow">Mode 3 · Mental Load</div>
+          <h2>Deteksi <em>burnout</em><br>sebelum terlambat</h2>
+          <p>Ceritakan aktivitas dan perasaanmu hari-hari ini. AI analisis beban mental dan deteksi tanda bahaya awal.</p>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">📊 Kondisi Sekarang</div>
+          <div class="form-group">
+            <label class="form-label">Level energi sehari-hari (1 = habis total, 10 = sangat berenergi)</label>
+            <div class="slider-wrap">
+              <input type="range" min="1" max="10" value="5" id="mental-energy" oninput="document.getElementById('mental-energy-val').textContent=this.value">
+              <span class="slider-val" id="mental-energy-val">5</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sudah berapa lama merasa seperti ini?</label>
+            <div class="chip-grid" id="mental-duration">
+              <div class="chip" data-val="beberapa hari">Beberapa hari</div>
+              <div class="chip" data-val="1-2 minggu">1–2 minggu</div>
+              <div class="chip" data-val="sebulan">Sebulan</div>
+              <div class="chip" data-val="beberapa bulan">Beberapa bulan</div>
+              <div class="chip" data-val="sudah lama banget">Sudah lama</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">🎭 Gejala yang Dirasakan</div>
+          <div class="chip-grid" id="mental-symptoms">
+            <div class="chip" data-val="sulit fokus">🧩 Sulit fokus</div>
+            <div class="chip" data-val="gampang marah">😤 Gampang marah</div>
+            <div class="chip" data-val="tidak ada motivasi">💤 Tidak ada motivasi</div>
+            <div class="chip" data-val="nangis tiba-tiba">😢 Nangis tiba-tiba</div>
+            <div class="chip" data-val="isolasi diri">🚪 Isolasi diri</div>
+            <div class="chip" data-val="fisik pegal/sakit">🤕 Fisik pegal</div>
+            <div class="chip" data-val="susah memutuskan">🤔 Sulit memutuskan</div>
+            <div class="chip" data-val="overthinking">💭 Overthinking</div>
+            <div class="chip" data-val="tidak menikmati hal yang biasa disuka">😶 Tidak enjoy hal yg biasa</div>
+            <div class="chip" data-val="merasa kosong">🫥 Merasa kosong</div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">📝 Ceritakan Harimu</div>
+          <div class="form-group">
+            <label class="form-label">Apa yang paling menyita pikiran belakangan ini?</label>
+            <textarea class="input" id="mental-story" rows="4" placeholder="Ceritakan dengan bebas — pekerjaan, hubungan, keuangan, keluarga, atau apapun yang terasa berat..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sumber tekanan terbesar (pilih semua)</label>
+            <div class="chip-grid" id="mental-sources">
+              <div class="chip" data-val="pekerjaan">💼 Pekerjaan</div>
+              <div class="chip" data-val="keuangan">💰 Keuangan</div>
+              <div class="chip" data-val="hubungan/pasangan">❤️ Hubungan</div>
+              <div class="chip" data-val="keluarga">👨‍👩‍👧 Keluarga</div>
+              <div class="chip" data-val="kesehatan">🏥 Kesehatan</div>
+              <div class="chip" data-val="masa depan">🔮 Masa depan</div>
+              <div class="chip" data-val="sosial/pertemanan">👥 Sosial</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary mb-24" onclick="analyzeMental()">🧠 Analisis Beban Mental</button>
+
+        <div class="loading-state" id="mental-loading">
+          <div class="leaf-loader"></div>
+          <div class="loading-msg">Membaca beban mentalmu…</div>
+          <div class="loading-sub">AI sedang menghitung pattern dan risiko</div>
+        </div>
+
+        <div class="result-box" id="mental-result">
+          <div class="verdict-banner" id="mental-verdict">
+            <div class="verdict-label" id="mental-verdict-label"></div>
+            <div class="verdict-heading" id="mental-verdict-title"></div>
+            <div class="verdict-body" id="mental-verdict-body"></div>
+          </div>
+          <div class="result-card mb-16">
+            <div class="result-card-title">⚡ Indikator yang Terdeteksi</div>
+            <div id="mental-indicators"></div>
+          </div>
+          <div class="advice-card">
+            <div class="advice-title">🌿 Langkah Pemulihan</div>
+            <div class="advice-body" id="mental-advice"></div>
+          </div>
+          <button class="btn-reset" onclick="resetMode('mental')">← Cek ulang</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           MODE 4: CEK OBAT
+      ══════════════════════════════════════ -->
+      <div class="mode-panel" id="panel-meds">
+        <div class="mode-hero">
+          <div class="section-eyebrow">Mode 4 · Medication Checker</div>
+          <h2>Cek <em>interaksi obat</em><br>sebelum konsumsi</h2>
+          <p>Input semua obat yang kamu minum — resep dokter, obat warung, suplemen, jamu. AI deteksi kombinasi berbahaya.</p>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">💊 Daftar Obat & Suplemen</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" class="input" id="med-input" placeholder="Nama obat/suplemen (misal: Amlodipine, Vitamin C, Minyak Ikan)..." style="flex:1;" onkeydown="if(event.key==='Enter')addMed()">
+            <button class="btn-secondary" onclick="addMed()">+ Tambah</button>
+          </div>
+          <div class="pill-list" id="med-list"></div>
+          <div class="divider"></div>
+          <div class="form-group">
+            <label class="form-label">Atau pilih yang umum</label>
+            <div class="chip-grid" id="med-common">
+              <div class="chip" data-val="Metformin">Metformin</div>
+              <div class="chip" data-val="Amlodipine">Amlodipine</div>
+              <div class="chip" data-val="Simvastatin">Simvastatin</div>
+              <div class="chip" data-val="Omeprazole">Omeprazole</div>
+              <div class="chip" data-val="Aspirin">Aspirin</div>
+              <div class="chip" data-val="Paracetamol">Paracetamol</div>
+              <div class="chip" data-val="Vitamin D3">Vitamin D3</div>
+              <div class="chip" data-val="Vitamin C">Vitamin C</div>
+              <div class="chip" data-val="Minyak Ikan">Minyak Ikan</div>
+              <div class="chip" data-val="Curcumin/Kunyit">Curcumin</div>
+              <div class="chip" data-val="Antasida">Antasida</div>
+              <div class="chip" data-val="Ibuprofen">Ibuprofen</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">📋 Info Tambahan</div>
+          <div class="form-group">
+            <label class="form-label">Kondisi kesehatan (untuk konteks)</label>
+            <input type="text" class="input" id="med-kondisi" placeholder="Misal: diabetes, hipertensi, hamil 3 bulan...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ada keluhan setelah minum obat?</label>
+            <textarea class="input" id="med-keluhan" rows="2" placeholder="Misal: perut mual, pusing, jantung berdebar..."></textarea>
+          </div>
+        </div>
+
+        <button class="btn-primary mb-24" id="med-btn" onclick="analyzeMeds()" disabled>
+          🔬 Cek Interaksi Obat
+        </button>
+
+        <div class="loading-state" id="meds-loading">
+          <div class="leaf-loader"></div>
+          <div class="loading-msg">Menganalisis kombinasi obat…</div>
+          <div class="loading-sub">AI memeriksa interaksi farmakologis</div>
+        </div>
+
+        <div class="result-box" id="meds-result">
+          <div class="verdict-banner" id="meds-verdict">
+            <div class="verdict-label" id="meds-verdict-label"></div>
+            <div class="verdict-heading" id="meds-verdict-title"></div>
+            <div class="verdict-body" id="meds-verdict-body"></div>
+          </div>
+          <div class="result-card mb-16">
+            <div class="result-card-title">⚠️ Detail Interaksi</div>
+            <div id="meds-interactions"></div>
+          </div>
+          <div class="advice-card">
+            <div class="advice-title">🌿 Rekomendasi</div>
+            <div class="advice-body" id="meds-advice"></div>
+          </div>
+          <button class="btn-reset" onclick="resetMode('meds')">← Cek obat lain</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           MODE 5: RECOVERY TRACKER
+      ══════════════════════════════════════ -->
+      <div class="mode-panel" id="panel-recovery">
+        <div class="mode-hero">
+          <div class="section-eyebrow">Mode 5 · Recovery Tracker</div>
+          <h2>Panduan <em>pemulihan</em><br>pasca sakit yang benar</h2>
+          <p>Habis sakit tapi bingung kapan boleh kerja keras lagi? AI buatin protokol pemulihan personal yang realistis.</p>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">🏥 Penyakit yang Baru Sembuh</div>
+          <div class="form-group">
+            <label class="form-label">Jenis penyakit / kondisi</label>
+            <div class="chip-grid" id="recovery-illness">
+              <div class="chip" data-val="demam berdarah (DBD)">🦟 DBD</div>
+              <div class="chip" data-val="tifus/demam tifoid">🌡️ Tifus</div>
+              <div class="chip" data-val="COVID-19">🦠 COVID-19</div>
+              <div class="chip" data-val="pneumonia">🫁 Pneumonia</div>
+              <div class="chip" data-val="operasi">🔪 Pasca Operasi</div>
+              <div class="chip" data-val="patah tulang">🦴 Patah Tulang</div>
+              <div class="chip" data-val="stroke ringan">🧠 Stroke Ringan</div>
+              <div class="chip" data-val="serangan jantung ringan">❤️ Jantung</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:12px;">
+            <input type="text" class="input" id="recovery-illness-custom" placeholder="Atau ketik sendiri (misal: usus buntu, hernia, anemia berat)...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sudah berapa hari sejak sembuh/keluar RS?</label>
+            <div class="slider-wrap">
+              <input type="range" min="0" max="60" value="7" id="recovery-days" oninput="document.getElementById('recovery-days-val').textContent=this.value+' hari'">
+              <span class="slider-val" id="recovery-days-val">7 hari</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">💪 Kondisi Saat Ini</div>
+          <div class="form-group">
+            <label class="form-label">Gejala yang masih dirasakan</label>
+            <div class="chip-grid" id="recovery-symptoms">
+              <div class="chip" data-val="masih lemas">😮‍💨 Masih lemas</div>
+              <div class="chip" data-val="nafsu makan kurang">🍽️ Nafsu makan kurang</div>
+              <div class="chip" data-val="nyeri tersisa">😣 Nyeri tersisa</div>
+              <div class="chip" data-val="sesak napas ringan">💨 Sesak ringan</div>
+              <div class="chip" data-val="pusing">😵 Pusing</div>
+              <div class="chip" data-val="sudah merasa baik">✅ Sudah baik</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Target pemulihan (pilih semua)</label>
+            <div class="chip-grid" id="recovery-goals">
+              <div class="chip" data-val="kembali bekerja">💼 Kembali kerja</div>
+              <div class="chip" data-val="olahraga lagi">🏃 Olahraga lagi</div>
+              <div class="chip" data-val="aktivitas normal">🚶 Aktivitas normal</div>
+              <div class="chip" data-val="diet pemulihan">🥗 Diet pemulihan</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary mb-24" onclick="analyzeRecovery()">🩹 Buat Protokol Pemulihan</button>
+
+        <div class="loading-state" id="recovery-loading">
+          <div class="leaf-loader"></div>
+          <div class="loading-msg">Menyusun protokol pemulihan…</div>
+          <div class="loading-sub">AI menganalisis kondisi dan membuat rencana</div>
+        </div>
+
+        <div class="result-box" id="recovery-result">
+          <div class="verdict-banner good" id="recovery-verdict">
+            <div class="verdict-label">Protokol Pemulihan Personal</div>
+            <div class="verdict-heading" id="recovery-title"></div>
+            <div class="verdict-body" id="recovery-body"></div>
+          </div>
+          <div class="result-card mb-16">
+            <div class="result-card-title">📅 Timeline Pemulihan</div>
+            <div id="recovery-timeline"></div>
+          </div>
+          <div class="advice-card">
+            <div class="advice-title">🌿 Pantangan & Yang Boleh Dilakukan</div>
+            <div class="advice-body" id="recovery-advice"></div>
+          </div>
+          <button class="btn-reset" onclick="resetMode('recovery')">← Input penyakit lain</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           MODE 6: FAMILY MEMORY
+      ══════════════════════════════════════ -->
+      <div class="mode-panel" id="panel-memory">
+        <div class="mode-hero">
+          <div class="section-eyebrow">Mode 6 · Family Memory</div>
+          <h2>Abadikan <em>cerita & wisdom</em><br>keluargamu</h2>
+          <p>Rekam cerita orang tua, kakek, nenek. AI ekstrak wisdom, rapikan, dan jadikan memoir digital yang bisa diwariskan.</p>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">👤 Siapa yang Bercerita?</div>
+          <div class="form-group">
+            <label class="form-label">Nama & hubungan</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <input type="text" class="input" id="mem-name" placeholder="Nama (misal: Mbah Siti)">
+              <div class="chip-grid" id="mem-relation" style="grid-column:1/-1;">
+                <div class="chip" data-val="Ayah">👨 Ayah</div>
+                <div class="chip" data-val="Ibu">👩 Ibu</div>
+                <div class="chip" data-val="Kakek">👴 Kakek</div>
+                <div class="chip" data-val="Nenek">👵 Nenek</div>
+                <div class="chip" data-val="Paman/Bibi">🧑 Paman/Bibi</div>
+                <div class="chip" data-val="Lainnya">👤 Lainnya</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Perkiraan usia</label>
+            <input type="number" class="input" id="mem-age" placeholder="Misal: 72" min="1" max="120">
+          </div>
+        </div>
+
+        <div class="card mb-16">
+          <div class="card-title">📖 Cerita / Transkrip</div>
+          <div class="form-group">
+            <label class="form-label">Ketik atau paste cerita / transkrip wawancara</label>
+            <textarea class="input" id="mem-story" rows="8" placeholder="Ketik atau paste cerita dari anggota keluargamu di sini...
+
+Contoh: 'Dulu waktu zaman penjajahan, mbah harus jalan kaki dari Klaten ke Jogja setiap minggu buat jual batik. Padahal itu 40 kilometer. Tapi mbah selalu bilang, kalau niat sudah kuat, kaki tidak akan terasa capek. Yang penting tujuannya jelas...'"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Topik / tema yang mau difokuskan</label>
+            <div class="chip-grid" id="mem-topics">
+              <div class="chip" data-val="perjalanan hidup">🗺️ Perjalanan hidup</div>
+              <div class="chip" data-val="pelajaran & wisdom">💡 Wisdom</div>
+              <div class="chip" data-val="sejarah keluarga">📜 Sejarah keluarga</div>
+              <div class="chip" data-val="perjuangan & pengorbanan">⚔️ Perjuangan</div>
+              <div class="chip" data-val="resep & tradisi">🍲 Tradisi</div>
+              <div class="chip" data-val="pesan untuk generasi muda">✉️ Pesan untuk cucu</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary mb-24" id="mem-btn" onclick="analyzeMemory()">📖 Abadikan Cerita</button>
+
+        <div class="loading-state" id="memory-loading">
+          <div class="leaf-loader"></div>
+          <div class="loading-msg">Mengabadikan cerita…</div>
+          <div class="loading-sub">AI menyusun memoir dari cerita yang kamu berikan</div>
+        </div>
+
+        <div class="result-box" id="memory-result">
+          <div class="verdict-banner good">
+            <div class="verdict-label">Memoir Tersimpan</div>
+            <div class="verdict-heading" id="mem-result-title"></div>
+            <div class="verdict-body" id="mem-result-intro"></div>
+          </div>
+          <div class="advice-card">
+            <div class="advice-title">📜 Cerita yang Diabadikan</div>
+            <div class="advice-body" id="mem-result-story"></div>
+          </div>
+          <div class="result-card mb-16">
+            <div class="result-card-title">💡 Wisdom yang Terekstrak</div>
+            <div id="mem-result-wisdom"></div>
+          </div>
+          <button class="btn-secondary" id="mem-copy-btn" onclick="copyMemoir()" style="width:100%;margin-bottom:10px;">📋 Copy Memoir</button>
+          <button class="btn-reset" onclick="resetMode('memory')">← Abadikan cerita lain</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+      <!-- WORLD CLOCK PANEL - injected via JS into content -->
+
+  </main>
+</div>
+
+<script>
+const OR_KEY = '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';
+const MODELS = [
+  'meta-llama/llama-3.3-70b-instruct',
+  'mistralai/mistral-small-3.1-24b-instruct',
+  'deepseek/deepseek-chat-v3-0324',
+  'google/gemma-3-27b-it',
+  'qwen/qwen3-235b-a22b'
+];
+const VISION_MODELS = [
+  'meta-llama/llama-3.2-90b-vision-instruct',
+  'google/gemini-flash-1.5',
+  'anthropic/claude-3-haiku',
+  'openai/gpt-4o-mini'
+];
+
+// State
+let foodImg64 = null;
+let medList = [];
+let starValues = {};
+
+// ── Sidebar ──
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── Mode switch ──
+const modeTitles = {
+  food: ['Analisis Makanan', 'Foto makanan → gizi + cek kondisi kesehatan'],
+  sleep: ['Sleep Quality Decoder', 'Analisis pola & kualitas tidurmu'],
+  mental: ['Mental Load Detector', 'Deteksi burnout sebelum terlambat'],
+  meds: ['Cek Interaksi Obat', 'Medication conflict checker'],
+  recovery: ['Recovery Tracker', 'Panduan pemulihan pasca sakit'],
+  memory: ['Family Memory Preserver', 'Abadikan cerita & wisdom keluarga'],
+};
+
+function switchMode(mode, el) {
+  document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + mode);
+  if (panel) panel.classList.add('active');
+  el.classList.add('active');
+  const titles = modeTitles[mode] || [mode, ''];
+  document.getElementById('topbarTitle').textContent = titles[0];
+  document.getElementById('topbarSub').textContent = titles[1];
+  closeSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Chip toggle ──
+function initChips(gridId) {
+  document.getElementById(gridId)?.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    chip.classList.toggle('active');
+  });
+}
+['food-kondisi-grid','sleep-symptoms','sleep-habits','mental-duration','mental-symptoms','mental-sources',
+ 'med-common','recovery-illness','recovery-symptoms','recovery-goals','mem-relation','mem-topics'].forEach(initChips);
+
+// ── Med common chips ──
+document.getElementById('med-common').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  addMedVal(chip.dataset.val);
+});
+
+// ── Custom kondisi (food) ──
+const foodCustom = [];
+function addCustomKondisi(mode) {
+  const inp = document.getElementById(mode + '-kondisi-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  foodCustom.push(val);
+  renderFoodPills();
+  inp.value = '';
+}
+document.getElementById('food-kondisi-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCustomKondisi('food');
+});
+function renderFoodPills() {
+  const list = document.getElementById('food-custom-pills');
+  list.innerHTML = foodCustom.map((v,i) => `
+    <span class="pill">${v}<span class="pill-remove" onclick="removeFoodKondisi(${i})">×</span></span>
+  `).join('');
+}
+function removeFoodKondisi(i) {
+  foodCustom.splice(i,1);
+  renderFoodPills();
+}
+
+// ── Star rating ──
+function setStar(gridId, val) {
+  starValues[gridId] = val;
+  const stars = document.querySelectorAll(`#${gridId} .star`);
+  stars.forEach((s,i) => s.classList.toggle('active', i < val));
+}
+
+// ── Food Image ──
+function handleFoodImg(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    foodImg64 = ev.target.result.split(',')[1];
+    document.getElementById('food-img').src = ev.target.result;
+    document.getElementById('food-fname').textContent = file.name;
+    document.getElementById('food-zone').style.display = 'none';
+    document.getElementById('food-preview').style.display = 'block';
+    document.getElementById('food-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+function resetFoodImg() {
+  foodImg64 = null;
+  document.getElementById('food-file').value = '';
+  document.getElementById('food-zone').style.display = 'block';
+  document.getElementById('food-preview').style.display = 'none';
+  document.getElementById('food-btn').disabled = true;
+}
+
+// ── Med list ──
+function addMed() {
+  const inp = document.getElementById('med-input');
+  addMedVal(inp.value.trim());
+  inp.value = '';
+}
+document.getElementById('med-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addMed();
+});
+function addMedVal(val) {
+  if (!val || medList.includes(val)) return;
+  medList.push(val);
+  renderMedList();
+}
+function removeMed(i) {
+  medList.splice(i,1);
+  renderMedList();
+}
+function renderMedList() {
+  document.getElementById('med-list').innerHTML = medList.map((m,i) => `
+    <span class="pill">${m}<span class="pill-remove" onclick="removeMed(${i})">×</span></span>
+  `).join('');
+  document.getElementById('med-btn').disabled = medList.length < 2;
+}
+
+// ── API call ──
+async function callOR(messages, useVision = false) {
+  const models = useVision ? VISION_MODELS : MODELS;
+  for (const model of models) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OR_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://healsync.app',
+          'X-Title': 'HealSync'
+        },
+        body: JSON.stringify({ model, max_tokens: 2000, messages })
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) continue;
+      return content;
+    } catch { continue; }
+  }
+  throw new Error('Semua model gagal');
+}
+
+function parseJSON(raw) {
+  const clean = raw.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+function showLoading(id) {
+  document.getElementById(id + '-loading').classList.add('show');
+  document.getElementById(id + '-result').classList.remove('show');
+}
+function hideLoading(id) {
+  document.getElementById(id + '-loading').classList.remove('show');
+}
+
+function getChips(gridId) {
+  return [...document.querySelectorAll(`#${gridId} .chip.active`)].map(c => c.dataset.val);
+}
+
+function setVerdict(prefix, status, label, title, body) {
+  const cls = status === 'AMAN' || status === 'BAIK' ? 'good' : status === 'HATI-HATI' || status === 'SEDANG' ? 'warn' : 'bad';
+  document.getElementById(prefix + '-verdict').className = 'verdict-banner ' + cls;
+  document.getElementById(prefix + '-verdict-label').textContent = label;
+  document.getElementById(prefix + '-verdict-title').textContent = title;
+  document.getElementById(prefix + '-verdict-body').textContent = body;
+}
+
+function showResult(id) {
+  document.getElementById(id + '-result').classList.add('show');
+  document.getElementById(id + '-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetMode(mode) {
+  document.getElementById(mode + '-result').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (mode === 'food') resetFoodImg();
+}
+
+// ─────────────────────────────
+// ANALYZE: FOOD
+// ─────────────────────────────
+async function analyzeFood() {
+  if (!foodImg64) return;
+  document.getElementById('food-btn').disabled = true;
+  showLoading('food');
+
+  const kondisi = [
+    ...getChips('food-kondisi-grid'),
+    ...foodCustom
+  ];
+  const kondisiText = kondisi.length ? `Kondisi: ${kondisi.join(', ')}` : 'Tidak ada kondisi khusus (analisis umum)';
+
+  const prompt = `Kamu ahli gizi dan dokter spesialis penyakit dalam yang ahli tentang makanan Indonesia. Analisis gambar makanan ini.
+${kondisiText}
+Jawab HANYA JSON berikut tanpa teks lain:
+{
+  "makanan": "nama makanan",
+  "emoji": "1 emoji",
+  "deskripsi": "deskripsi singkat",
+  "status": "AMAN|HATI-HATI|HINDARI",
+  "verdict_title": "judul singkat max 6 kata",
+  "verdict_body": "penjelasan 2-3 kalimat",
+  "nutrisi": [
+    {"nama":"Kalori","nilai":"xxx kcal","persen":60},
+    {"nama":"Karbohidrat","nilai":"xx g","persen":70},
+    {"nama":"Protein","nilai":"xx g","persen":40},
+    {"nama":"Lemak","nilai":"xx g","persen":50},
+    {"nama":"Serat","nilai":"x g","persen":20},
+    {"nama":"Gula","nilai":"xx g","persen":80}
+  ],
+  "pantang": [
+    {"kondisi":"nama kondisi atau Umum","status":"BOLEH|HATI-HATI|HINDARI","alasan":"1 kalimat"}
+  ],
+  "saran": "saran praktis 3-4 kalimat"
+}`;
+
+  try {
+    const raw = await callOR([{
+      role: 'user',
+      content: [
+        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${foodImg64}` } },
+        { type: 'text', text: prompt }
+      ]
+    }], true);
+
+    const d = parseJSON(raw);
+    hideLoading('food');
+
+    setVerdict('food', d.status, '🍽️ Hasil Analisis', d.verdict_title, d.verdict_body);
+    document.getElementById('food-emoji').textContent = d.emoji;
+    document.getElementById('food-makanan').textContent = d.makanan;
+    document.getElementById('food-desc').textContent = d.deskripsi;
+
+    document.getElementById('food-nutrisi').innerHTML = (d.nutrisi || []).map(n => `
+      <div style="margin-bottom:10px;">
+        <div class="metric-row">
+          <span class="metric-name">${n.nama}</span>
+          <span class="metric-val">${n.nilai}</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${Math.min(n.persen,100)}%;background:${n.persen>80?'var(--red)':n.persen>60?'var(--amber)':'var(--green)'}"></div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('food-pantang').innerHTML = (d.pantang || []).map(p => `
+      <div class="check-row ${p.status==='BOLEH'?'ok':p.status==='HATI-HATI'?'caution':'stop'}">
+        <span class="check-icon">${p.status==='BOLEH'?'✓':p.status==='HATI-HATI'?'⚠':'✕'}</span>
+        <div class="check-content">
+          ${p.alasan}
+          <div class="check-sub">${p.kondisi}</div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('food-saran').textContent = d.saran;
+    showResult('food');
+  } catch(e) {
+    hideLoading('food');
+    alert('Gagal analisis. Coba lagi.');
+  }
+  document.getElementById('food-btn').disabled = false;
+}
+
+// ─────────────────────────────
+// ANALYZE: SLEEP
+// ─────────────────────────────
+async function analyzeSleep() {
+  showLoading('sleep');
+  const start = document.getElementById('sleep-start').value;
+  const end = document.getElementById('sleep-end').value;
+  const wake = document.getElementById('sleep-wake').value;
+  const fresh = starValues['sleep-fresh-stars'] || 3;
+  const symptoms = getChips('sleep-symptoms');
+  const habits = getChips('sleep-habits');
+  const notes = document.getElementById('sleep-notes').value;
+
+  const prompt = `Kamu dokter spesialis tidur (sleep medicine) Indonesia. Analisis pola tidur ini:
+Jam tidur: ${start} - ${end}
+Terbangun: ${wake}x semalam
+Kesegaran bangun: ${fresh}/5
+Gejala: ${symptoms.join(', ') || 'tidak ada'}
+Kebiasaan sebelum tidur: ${habits.join(', ') || 'tidak ada'}
+Catatan: ${notes || '-'}
+
+Jawab HANYA JSON:
+{
+  "status": "BAIK|SEDANG|BURUK",
+  "verdict_title": "judul max 6 kata",
+  "verdict_body": "analisis 2-3 kalimat",
+  "patterns": [
+    {"tipe":"ok|caution|stop","judul":"nama pattern","deskripsi":"penjelasan 1-2 kalimat"}
+  ],
+  "advice": "protokol perbaikan tidur 4-5 kalimat, spesifik dan praktis untuk Indonesia"
+}`;
+
+  try {
+    const raw = await callOR([{ role: 'user', content: prompt }]);
+    const d = parseJSON(raw);
+    hideLoading('sleep');
+
+    setVerdict('sleep', d.status, '🌙 Kualitas Tidur', d.verdict_title, d.verdict_body);
+
+    document.getElementById('sleep-patterns').innerHTML = (d.patterns || []).map(p => `
+      <div class="check-row ${p.tipe==='ok'?'ok':p.tipe==='caution'?'caution':'stop'}">
+        <span class="check-icon">${p.tipe==='ok'?'✓':p.tipe==='caution'?'⚠':'✕'}</span>
+        <div class="check-content">
+          <strong>${p.judul}</strong>
+          <div style="margin-top:3px;">${p.deskripsi}</div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('sleep-advice').textContent = d.advice;
+    showResult('sleep');
+  } catch(e) {
+    hideLoading('sleep');
+    alert('Gagal analisis. Coba lagi.');
+  }
+}
+
+// ─────────────────────────────
+// ANALYZE: MENTAL
+// ─────────────────────────────
+async function analyzeMental() {
+  showLoading('mental');
+  const energy = document.getElementById('mental-energy').value;
+  const duration = getChips('mental-duration');
+  const symptoms = getChips('mental-symptoms');
+  const story = document.getElementById('mental-story').value;
+  const sources = getChips('mental-sources');
+
+  const prompt = `Kamu psikolog klinis Indonesia yang empatik dan jujur. Analisis beban mental ini:
+Level energi: ${energy}/10
+Sudah berapa lama: ${duration.join(', ') || 'tidak disebutkan'}
+Gejala: ${symptoms.join(', ') || 'tidak ada'}
+Sumber tekanan: ${sources.join(', ') || 'tidak disebutkan'}
+Cerita: ${story || '-'}
+
+Jawab HANYA JSON:
+{
+  "status": "AMAN|HATI-HATI|KRITIS",
+  "verdict_title": "judul max 6 kata",
+  "verdict_body": "analisis empatik 2-3 kalimat",
+  "indicators": [
+    {"tipe":"ok|caution|stop","nama":"nama indikator","detail":"penjelasan 1-2 kalimat"}
+  ],
+  "advice": "langkah pemulihan konkret 4-5 kalimat. Praktis, tidak menghakimi, cocok konteks Indonesia. Jika perlu profesional, sarankan."
+}`;
+
+  try {
+    const raw = await callOR([{ role: 'user', content: prompt }]);
+    const d = parseJSON(raw);
+    hideLoading('mental');
+
+    setVerdict('mental', d.status, '🧠 Beban Mental', d.verdict_title, d.verdict_body);
+
+    document.getElementById('mental-indicators').innerHTML = (d.indicators || []).map(p => `
+      <div class="check-row ${p.tipe==='ok'?'ok':p.tipe==='caution'?'caution':'stop'}">
+        <span class="check-icon">${p.tipe==='ok'?'✓':p.tipe==='caution'?'⚠':'✕'}</span>
+        <div class="check-content">
+          <strong>${p.nama}</strong>
+          <div style="margin-top:3px;">${p.detail}</div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('mental-advice').textContent = d.advice;
+    showResult('mental');
+  } catch(e) {
+    hideLoading('mental');
+    alert('Gagal analisis. Coba lagi.');
+  }
+}
+
+// ─────────────────────────────
+// ANALYZE: MEDS
+// ─────────────────────────────
+async function analyzeMeds() {
+  if (medList.length < 2) return;
+  showLoading('meds');
+  const kondisi = document.getElementById('med-kondisi').value;
+  const keluhan = document.getElementById('med-keluhan').value;
+
+  const prompt = `Kamu apoteker dan dokter farmakologi klinis Indonesia. Cek interaksi obat berikut:
+Obat/suplemen: ${medList.join(', ')}
+Kondisi pasien: ${kondisi || 'tidak disebutkan'}
+Keluhan setelah minum: ${keluhan || 'tidak ada'}
+
+Jawab HANYA JSON:
+{
+  "status": "AMAN|HATI-HATI|BERBAHAYA",
+  "verdict_title": "judul max 6 kata",
+  "verdict_body": "ringkasan 2-3 kalimat",
+  "interactions": [
+    {"tipe":"ok|caution|stop","obat1":"nama","obat2":"nama","risiko":"penjelasan interaksi 1-2 kalimat"}
+  ],
+  "advice": "rekomendasi konkret 3-4 kalimat. Kapan harus ke dokter, cara minum yang benar, dll."
+}`;
+
+  try {
+    const raw = await callOR([{ role: 'user', content: prompt }]);
+    const d = parseJSON(raw);
+    hideLoading('meds');
+
+    setVerdict('meds', d.status, '💊 Hasil Pengecekan', d.verdict_title, d.verdict_body);
+
+    document.getElementById('meds-interactions').innerHTML = (d.interactions || []).map(p => `
+      <div class="check-row ${p.tipe==='ok'?'ok':p.tipe==='caution'?'caution':'stop'}">
+        <span class="check-icon">${p.tipe==='ok'?'✓':p.tipe==='caution'?'⚠':'✕'}</span>
+        <div class="check-content">
+          <strong>${p.obat1} + ${p.obat2}</strong>
+          <div style="margin-top:3px;">${p.risiko}</div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('meds-advice').textContent = d.advice;
+    showResult('meds');
+  } catch(e) {
+    hideLoading('meds');
+    alert('Gagal analisis. Coba lagi.');
+  }
+}
+
+// ─────────────────────────────
+// ANALYZE: RECOVERY
+// ─────────────────────────────
+async function analyzeRecovery() {
+  showLoading('recovery');
+  const illness = [...getChips('recovery-illness'), document.getElementById('recovery-illness-custom').value].filter(Boolean);
+  const days = document.getElementById('recovery-days').value;
+  const symptoms = getChips('recovery-symptoms');
+  const goals = getChips('recovery-goals');
+
+  const prompt = `Kamu dokter spesialis penyakit dalam Indonesia dengan keahlian rehabilitasi medis. Buat protokol pemulihan:
+Penyakit: ${illness.join(', ') || 'tidak disebutkan'}
+Hari sejak sembuh: ${days} hari
+Gejala sisa: ${symptoms.join(', ') || 'tidak ada'}
+Target: ${goals.join(', ') || 'tidak disebutkan'}
+
+Jawab HANYA JSON:
+{
+  "judul": "judul protokol max 8 kata",
+  "ringkasan": "ringkasan kondisi dan prognosis 2-3 kalimat",
+  "timeline": [
+    {"fase":"nama fase","durasi":"misal minggu 1-2","boleh":"apa yang boleh dilakukan","hindari":"apa yang harus dihindari"}
+  ],
+  "advice": "panduan lengkap: makanan, aktivitas, tanda bahaya yang harus ke dokter. 5-6 kalimat."
+}`;
+
+  try {
+    const raw = await callOR([{ role: 'user', content: prompt }]);
+    const d = parseJSON(raw);
+    hideLoading('recovery');
+
+    document.getElementById('recovery-title').textContent = d.judul;
+    document.getElementById('recovery-body').textContent = d.ringkasan;
+
+    document.getElementById('recovery-timeline').innerHTML = (d.timeline || []).map((t,i) => `
+      <div class="step-row">
+        <div class="step-num">${i+1}</div>
+        <div class="step-content">
+          <div class="step-title">${t.fase} <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);">${t.durasi}</span></div>
+          <div class="step-desc">
+            <span style="color:var(--green);">✓ Boleh:</span> ${t.boleh}<br>
+            <span style="color:var(--red);">✕ Hindari:</span> ${t.hindari}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('recovery-advice').textContent = d.advice;
+    showResult('recovery');
+  } catch(e) {
+    hideLoading('recovery');
+    alert('Gagal analisis. Coba lagi.');
+  }
+}
+
+// ─────────────────────────────
+// ANALYZE: MEMORY
+// ─────────────────────────────
+let lastMemoir = '';
+async function analyzeMemory() {
+  const story = document.getElementById('mem-story').value.trim();
+  if (!story) { alert('Masukkan cerita dulu ya.'); return; }
+
+  document.getElementById('mem-btn').disabled = true;
+  showLoading('memory');
+
+  const name = document.getElementById('mem-name').value || 'Anggota Keluarga';
+  const relation = getChips('mem-relation')[0] || '';
+  const age = document.getElementById('mem-age').value;
+  const topics = getChips('mem-topics');
+
+  const prompt = `Kamu penulis memoir dan sejarawan keluarga Indonesia yang berbakat. Ubah cerita ini menjadi memoir yang indah dan bermakna untuk diwariskan ke generasi berikutnya.
+
+Narasumber: ${name}${relation ? ', ' + relation : ''}${age ? ', ' + age + ' tahun' : ''}
+Fokus: ${topics.join(', ') || 'perjalanan hidup'}
+
+Cerita asli:
+"${story}"
+
+Jawab HANYA JSON:
+{
+  "judul": "judul memoir yang puitis dan bermakna",
+  "intro": "kalimat pembuka memoir yang indah, 2 kalimat",
+  "memoir": "versi memoir yang sudah ditulis ulang dengan indah, tetap otentik, dalam bahasa Indonesia yang mengalir. 3-4 paragraf.",
+  "wisdom": [
+    {"pelajaran": "pelajaran hidup yang bisa dipetik", "kutipan": "kalimat inspiratif dari cerita ini"}
+  ]
+}`;
+
+  try {
+    const raw = await callOR([{ role: 'user', content: prompt }]);
+    const d = parseJSON(raw);
+    hideLoading('memory');
+
+    document.getElementById('mem-result-title').textContent = d.judul;
+    document.getElementById('mem-result-intro').textContent = d.intro;
+    document.getElementById('mem-result-story').innerHTML = d.memoir.split('\n\n').map(p => `<p style="margin-bottom:14px;">${p}</p>`).join('');
+
+    document.getElementById('mem-result-wisdom').innerHTML = (d.wisdom || []).map(w => `
+      <div style="margin-bottom:14px;padding:12px 14px;background:var(--green-dim);border:1px solid rgba(78,203,113,0.15);border-radius:10px;">
+        <div style="font-size:13px;font-weight:500;color:var(--green);margin-bottom:4px;">💡 ${w.pelajaran}</div>
+        <div style="font-size:13px;color:var(--text-muted);font-style:italic;font-family:'Playfair Display',serif;">"${w.kutipan}"</div>
+      </div>
+    `).join('');
+
+    lastMemoir = `${d.judul}\n\n${d.intro}\n\n${d.memoir}\n\nWisdom:\n${(d.wisdom||[]).map(w=>`• ${w.pelajaran}: "${w.kutipan}"`).join('\n')}`;
+    showResult('memory');
+  } catch(e) {
+    hideLoading('memory');
+    alert('Gagal. Coba lagi.');
+  }
+  document.getElementById('mem-btn').disabled = false;
+}
+
+function copyMemoir() {
+  navigator.clipboard.writeText(lastMemoir).then(() => {
+    const btn = document.getElementById('mem-copy-btn');
+    btn.textContent = '✓ Tersalin!';
+    setTimeout(() => btn.textContent = '📋 Copy Memoir', 2000);
+  });
+}
+
+// ── Drag & drop food ──
+const fz = document.getElementById('food-zone');
+fz.addEventListener('dragover', e => { e.preventDefault(); fz.classList.add('drag-over'); });
+fz.addEventListener('dragleave', () => fz.classList.remove('drag-over'));
+fz.addEventListener('drop', e => {
+  e.preventDefault();
+  fz.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file?.type.startsWith('image/')) handleFoodImg({ target: { files: [file] } });
+});
+
+// ═══════════════════════════════════════════════
+// SETTINGS: i18n, Theme, Font, World Clock
+// ═══════════════════════════════════════════════
+
+// ── i18n: Full content translation per language ──
+// Strategy: store base Indonesian text as keys, map to each language
+// We'll scan all visible text nodes and translate via a lookup table.
+
+const LANGS = {
+  en: { name: 'English',   flag: '🇬🇧', code: 'en' },
+  id: { name: 'Indonesia', flag: '🇮🇩', code: 'id' },
+  ja: { name: '日本語',     flag: '🇯🇵', code: 'ja' },
+  ar: { name: 'العربية',   flag: '🇸🇦', code: 'ar' },
+  zh: { name: '中文',       flag: '🇨🇳', code: 'zh' },
+  es: { name: 'Español',   flag: '🇪🇸', code: 'es' },
+};
+
+// Master translation map: id (base) → target langs
+// Format: 'id_text': { en, ja, ar, zh, es }
+// id = same as source (Indonesian), so we only need non-id languages
+const T = {
+  // NAV
+  'Tools':                        { en:'Tools',           ja:'ツール',      ar:'أدوات',     zh:'工具',   es:'Herramientas' },
+  'Analisis Makanan':             { en:'Food Analysis',   ja:'食事分析',    ar:'تحليل الطعام', zh:'饮食分析', es:'Análisis Comida' },
+  'Foto → gizi + pantang':        { en:'Photo → nutrition', ja:'写真 → 栄養', ar:'صورة ← تغذية', zh:'照片 → 营养', es:'Foto → nutrición' },
+  'Sleep Quality':                { en:'Sleep Quality',   ja:'睡眠品質',    ar:'جودة النوم', zh:'睡眠质量', es:'Calidad Sueño' },
+  'Decoder tidurmu':              { en:'Sleep decoder',   ja:'睡眠デコーダー', ar:'محلل النوم', zh:'睡眠解码器', es:'Decodificador sueño' },
+  'Mental Load':                  { en:'Mental Load',     ja:'メンタル',    ar:'الحمل النفسي', zh:'心理负担', es:'Carga Mental' },
+  'Deteksi burnout':              { en:'Burnout detector', ja:'バーンアウト検出', ar:'كشف الإجهاد', zh:'倦怠检测', es:'Detector burnout' },
+  'Cek Obat':                     { en:'Check Meds',      ja:'薬チェック',  ar:'فحص الأدوية', zh:'药物检查', es:'Revisar Meds' },
+  'Conflict checker':             { en:'Conflict checker', ja:'薬の相互作用', ar:'تعارض الأدوية', zh:'药物冲突', es:'Conflicto medicamentos' },
+  'Recovery Tracker':             { en:'Recovery Tracker', ja:'回復トラッカー', ar:'تتبع التعافي', zh:'康复追踪', es:'Recuperación' },
+  'Pasca sakit':                  { en:'Post-illness',    ja:'病後',        ar:'ما بعد المرض', zh:'病后恢复', es:'Post-enfermedad' },
+  'Family Memory':                { en:'Family Memory',   ja:'家族の記憶',  ar:'ذاكرة العائلة', zh:'家庭记忆', es:'Memoria Familia' },
+  'Simpan cerita keluarga':       { en:'Save family stories', ja:'家族の話を保存', ar:'احفظ قصص العائلة', zh:'保存家庭故事', es:'Guardar historias' },
+  'World Clock':                  { en:'World Clock',     ja:'世界時計',    ar:'ساعة العالم', zh:'世界时钟', es:'Reloj Mundial' },
+  'Jam dunia':                    { en:'Global time',     ja:'世界の時刻',  ar:'الوقت العالمي', zh:'全球时间', es:'Hora mundial' },
+  'Settings':                     { en:'Settings',        ja:'設定',        ar:'الإعدادات', zh:'设置',   es:'Ajustes' },
+  'Bahasa, font, tema':           { en:'Language, font, theme', ja:'言語、フォント、テーマ', ar:'اللغة والخط والثيم', zh:'语言、字体、主题', es:'Idioma, fuente, tema' },
+  'Pengaturan':                   { en:'Settings',        ja:'設定',        ar:'الإعدادات', zh:'设置',   es:'Ajustes' },
+  'AI Aktif':                     { en:'AI Active',       ja:'AI 稼働中',   ar:'الذكاء الاصطناعي نشط', zh:'AI 运行中', es:'IA Activa' },
+  '⚠ Bukan pengganti dokter. Konsultasikan ke tenaga medis untuk keputusan klinis.':
+    { en:'⚠ Not a doctor replacement. Consult medical professionals for clinical decisions.',
+      ja:'⚠ 医師の代替ではありません。医療専門家に相談してください。',
+      ar:'⚠ ليس بديلاً عن الطبيب. استشر المختصين الطبيين.',
+      zh:'⚠ 不能替代医生。临床决策请咨询医疗专业人员。',
+      es:'⚠ No reemplaza al médico. Consulte a profesionales de salud.' },
+  'Made with':                    { en:'Made with',       ja:'作られた',    ar:'صُنع بـ',  zh:'用爱制作', es:'Hecho con' },
+  // Settings drawer UI
+  'TEMA':         { en:'THEME',    ja:'テーマ',  ar:'الثيم',  zh:'主题',  es:'TEMA' },
+  'BAHASA':       { en:'LANGUAGE', ja:'言語',    ar:'اللغة',  zh:'语言',  es:'IDIOMA' },
+  'FONT':         { en:'FONT',     ja:'フォント', ar:'الخط',   zh:'字体',  es:'FUENTE' },
+  'ABOUT':        { en:'ABOUT',    ja:'アプリ情報', ar:'حول',  zh:'关于',  es:'ACERCA' },
+  'Gelap':        { en:'Dark',     ja:'ダーク',  ar:'داكن',   zh:'深色',  es:'Oscuro' },
+  'Terang':       { en:'Light',    ja:'ライト',  ar:'فاتح',   zh:'浅色',  es:'Claro' },
+  'Otomatis':     { en:'Auto',     ja:'自動',    ar:'تلقائي', zh:'自动',  es:'Auto' },
+  // Food panel
+  'Mode 1 · Foto Makanan':        { en:'Mode 1 · Food Photo', ja:'モード1 · 食事写真', ar:'وضع 1 · صورة الطعام', zh:'模式1 · 食物照片', es:'Modo 1 · Foto Comida' },
+  'Tau kandungan &':              { en:'Know the nutrition &', ja:'栄養素を知る &', ar:'اعرف المحتوى &', zh:'了解营养 &', es:'Conoce el contenido &' },
+  'pantangan':                    { en:'restrictions', ja:'禁忌食品', ar:'المحظورات', zh:'禁忌', es:'restricciones' },
+  'sebelum makan':                { en:'before eating', ja:'食事前に', ar:'قبل الأكل', zh:'饭前', es:'antes de comer' },
+  'Upload foto makanan Indonesia, AI langsung analisis gizi dan cek kesesuaian dengan kondisi kesehatanmu.':
+    { en:'Upload a food photo, AI instantly analyzes nutrition and checks it against your health conditions.',
+      ja:'食べ物の写真をアップロードすると、AIが栄養を分析し、健康状態と照合します。',
+      ar:'ارفع صورة الطعام، سيحلل الذكاء الاصطناعي القيمة الغذائية ويتحقق من ملاءمتها.',
+      zh:'上传食物照片，AI立即分析营养成分并根据您的健康状况进行检查。',
+      es:'Sube una foto de comida, la IA analiza la nutrición y verifica según tu condición.' },
+  'Kondisi kesehatanmu':          { en:'Your health conditions', ja:'健康状態', ar:'حالتك الصحية', zh:'您的健康状况', es:'Tu condición de salud' },
+  '(opsional)':                   { en:'(optional)', ja:'(任意)', ar:'(اختياري)', zh:'(可选)', es:'(opcional)' },
+  'Kondisi lain (misal: alergi kacang)...': { en:'Other conditions (e.g. peanut allergy)...', ja:'その他の状態（例：ピーナッツアレルギー）...', ar:'حالات أخرى (مثل: حساسية الفول السوداني)...', zh:'其他情况（例如：花生过敏）...', es:'Otras condiciones (ej: alergia al maní)...' },
+  '+ Tambah':                     { en:'+ Add', ja:'+ 追加', ar:'+ إضافة', zh:'+ 添加', es:'+ Agregar' },
+  'Foto makanan':                 { en:'Food photo', ja:'食べ物の写真', ar:'صورة الطعام', zh:'食物照片', es:'Foto comida' },
+  'Upload atau foto langsung':    { en:'Upload or take a photo', ja:'アップロードまたは撮影', ar:'ارفع أو التقط صورة', zh:'上传或拍照', es:'Subir o tomar foto' },
+  'JPG, PNG, WEBP · Makanan Indonesia supported': { en:'JPG, PNG, WEBP · All cuisines supported', ja:'JPG, PNG, WEBP · 料理に対応', ar:'JPG, PNG, WEBP · جميع المأكولات مدعومة', zh:'JPG, PNG, WEBP · 支持各种菜肴', es:'JPG, PNG, WEBP · Todas las cocinas' },
+  'Ganti':                        { en:'Change', ja:'変更', ar:'تغيير', zh:'更换', es:'Cambiar' },
+  '🔍 Analisis Sekarang':         { en:'🔍 Analyze Now', ja:'🔍 今すぐ分析', ar:'🔍 تحليل الآن', zh:'🔍 立即分析', es:'🔍 Analizar Ahora' },
+  'Menganalisis makananmu…':      { en:'Analyzing your food…', ja:'食べ物を分析中…', ar:'جاري تحليل طعامك…', zh:'正在分析您的食物…', es:'Analizando tu comida…' },
+  'AI sedang mengenali bahan dan kandungan gizi': { en:'AI is identifying ingredients and nutrition', ja:'AIが食材と栄養素を識別中', ar:'يحدد الذكاء الاصطناعي المكونات والقيمة الغذائية', zh:'AI正在识别食材和营养成分', es:'IA identificando ingredientes y nutrición' },
+  '🌿 Saran HealSync':            { en:'🌿 HealSync Advice', ja:'🌿 HealSyncアドバイス', ar:'🌿 نصيحة HealSync', zh:'🌿 HealSync建议', es:'🌿 Consejo HealSync' },
+  '← Analisis makanan lain':     { en:'← Analyze another food', ja:'← 別の食べ物を分析', ar:'← تحليل طعام آخر', zh:'← 分析其他食物', es:'← Analizar otra comida' },
+  // Sleep panel
+  'Mode 2 · Sleep Quality':       { en:'Mode 2 · Sleep Quality', ja:'モード2 · 睡眠品質', ar:'وضع 2 · جودة النوم', zh:'模式2 · 睡眠质量', es:'Modo 2 · Calidad Sueño' },
+  'Decode':                       { en:'Decode', ja:'解析', ar:'فك شفرة', zh:'解码', es:'Descifra' },
+  'pola tidurmu':                 { en:'your sleep patterns', ja:'睡眠パターン', ar:'أنماط نومك', zh:'你的睡眠模式', es:'tus patrones de sueño' },
+  'yang tersembunyi':             { en:'that are hidden', ja:'が隠れている', ar:'المخفية', zh:'的秘密', es:'que están ocultos' },
+  'Ceritakan kebiasaan tidurmu. AI temukan pattern dan kasih insight yang dokter tidur biasanya bilang.':
+    { en:'Tell us about your sleep habits. AI finds patterns and gives insights sleep doctors usually share.',
+      ja:'睡眠習慣を教えてください。AIがパターンを見つけ、睡眠専門医が通常言うインサイトを提供します。',
+      ar:'أخبرنا عن عادات نومك. يكتشف الذكاء الاصطناعي الأنماط ويقدم رؤى.',
+      zh:'告诉我们您的睡眠习惯，AI发现规律并提供睡眠医生通常给出的见解。',
+      es:'Cuéntanos tus hábitos de sueño. La IA encontrará patrones e insights.' },
+  '🕐 Pola Tidur':                { en:'🕐 Sleep Pattern', ja:'🕐 睡眠パターン', ar:'🕐 نمط النوم', zh:'🕐 睡眠模式', es:'🕐 Patrón de Sueño' },
+  'Jam mulai tidur biasanya':     { en:'Usual bedtime', ja:'通常の就寝時間', ar:'وقت النوم المعتاد', zh:'通常就寝时间', es:'Hora habitual de dormir' },
+  'Jam bangun biasanya':          { en:'Usual wake time', ja:'通常の起床時間', ar:'وقت الاستيقاظ المعتاد', zh:'通常起床时间', es:'Hora habitual de despertar' },
+  'Berapa kali terbangun semalam?': { en:'How many times did you wake up last night?', ja:'昨夜何回目が覚めましたか？', ar:'كم مرة استيقظت الليلة الماضية؟', zh:'昨晚醒来几次？', es:'¿Cuántas veces te despertaste anoche?' },
+  'Seberapa segar saat bangun?':  { en:'How refreshed do you feel when waking up?', ja:'目覚めたときどのくらいすっきりしていますか？', ar:'كيف تشعر عند الاستيقاظ؟', zh:'起床时感觉有多精神？', es:'¿Qué tan fresco te sientes al despertar?' },
+  '💭 Gejala & Kebiasaan':       { en:'💭 Symptoms & Habits', ja:'💭 症状と習慣', ar:'💭 الأعراض والعادات', zh:'💭 症状与习惯', es:'💭 Síntomas y Hábitos' },
+  'Gejala saat tidur (pilih yang sesuai)': { en:'Sleep symptoms (select all that apply)', ja:'睡眠中の症状（該当するものを選択）', ar:'أعراض النوم (اختر ما ينطبق)', zh:'睡眠症状（选择所有适用的）', es:'Síntomas al dormir (selecciona los que apliquen)' },
+  'Kebiasaan sebelum tidur (pilih semua yang berlaku)': { en:'Pre-sleep habits (select all that apply)', ja:'就寝前の習慣（該当するものを全て選択）', ar:'عادات قبل النوم (اختر كل ما ينطبق)', zh:'睡前习惯（选择所有适用的）', es:'Hábitos antes de dormir (selecciona los que apliquen)' },
+  'Ceritakan lebih lanjut tentang tidurmu (opsional)': { en:'Tell us more about your sleep (optional)', ja:'睡眠についてもっと教えてください（任意）', ar:'أخبرنا المزيد عن نومك (اختياري)', zh:'告诉我们更多关于你的睡眠（可选）', es:'Cuéntanos más sobre tu sueño (opcional)' },
+  '🌙 Analisis Pola Tidur':       { en:'🌙 Analyze Sleep Pattern', ja:'🌙 睡眠パターンを分析', ar:'🌙 تحليل نمط النوم', zh:'🌙 分析睡眠模式', es:'🌙 Analizar Patrón de Sueño' },
+  'Membaca pola tidurmu…':        { en:'Reading your sleep pattern…', ja:'睡眠パターンを読み取り中…', ar:'جاري قراءة نمط نومك…', zh:'正在读取您的睡眠模式…', es:'Leyendo tu patrón de sueño…' },
+  'AI sedang mengidentifikasi masalah tersembunyi': { en:'AI is identifying hidden issues', ja:'AIが隠れた問題を特定中', ar:'يحدد الذكاء الاصطناعي المشاكل المخفية', zh:'AI正在识别隐藏问题', es:'IA identificando problemas ocultos' },
+  '🌿 Protokol Perbaikan Tidur':  { en:'🌿 Sleep Improvement Protocol', ja:'🌿 睡眠改善プロトコル', ar:'🌿 بروتوكول تحسين النوم', zh:'🌿 睡眠改善方案', es:'🌿 Protocolo de Mejora del Sueño' },
+  '← Analisis ulang':            { en:'← Re-analyze', ja:'← 再分析', ar:'← إعادة التحليل', zh:'← 重新分析', es:'← Re-analizar' },
+  // Mental panel
+  'Mode 3 · Mental Load':         { en:'Mode 3 · Mental Load', ja:'モード3 · メンタル負荷', ar:'وضع 3 · الحمل النفسي', zh:'模式3 · 心理负担', es:'Modo 3 · Carga Mental' },
+  'Deteksi':                      { en:'Detect', ja:'検出', ar:'اكتشف', zh:'检测', es:'Detecta' },
+  'burnout':                      { en:'burnout', ja:'バーンアウト', ar:'الإجهاد', zh:'倦怠', es:'burnout' },
+  'sebelum terlambat':            { en:'before it is too late', ja:'手遅れになる前に', ar:'قبل فوات الأوان', zh:'在为时已晚之前', es:'antes de que sea tarde' },
+  'Ceritakan aktivitas dan perasaanmu hari-hari ini. AI analisis beban mental dan deteksi tanda bahaya awal.':
+    { en:'Share your daily activities and feelings. AI analyzes mental load and detects early warning signs.',
+      ja:'日常の活動と気持ちを共有してください。AIが精神的負荷を分析し、早期警戒サインを検出します。',
+      ar:'شارك أنشطتك اليومية ومشاعرك. يحلل الذكاء الاصطناعي العبء النفسي.',
+      zh:'分享您的日常活动和感受。AI分析心理负担并检测早期预警信号。',
+      es:'Comparte tus actividades y sentimientos diarios. IA analiza la carga mental.' },
+  '📊 Kondisi Sekarang':          { en:'📊 Current State', ja:'📊 現在の状態', ar:'📊 الحالة الراهنة', zh:'📊 当前状态', es:'📊 Estado Actual' },
+  'Level energi sehari-hari (1 = habis total, 10 = sangat berenergi)': { en:'Daily energy level (1 = exhausted, 10 = very energetic)', ja:'日常のエネルギーレベル（1=消耗、10=非常に元気）', ar:'مستوى الطاقة اليومي (1 = منهك تماماً، 10 = منتعش جداً)', zh:'日常精力水平 (1=精疲力竭, 10=精力充沛)', es:'Nivel de energía diario (1=agotado, 10=muy energético)' },
+  'Sudah berapa lama merasa seperti ini?': { en:'How long have you felt this way?', ja:'どのくらいこのように感じていますか？', ar:'منذ متى وأنت تشعر هكذا؟', zh:'这种感觉持续多久了？', es:'¿Cuánto tiempo llevas sintiéndote así?' },
+  '🎭 Gejala yang Dirasakan':     { en:'🎭 Symptoms Felt', ja:'🎭 感じている症状', ar:'🎭 الأعراض التي تشعر بها', zh:'🎭 感受到的症状', es:'🎭 Síntomas Sentidos' },
+  '📝 Ceritakan Harimu':          { en:'📝 Tell Us About Your Day', ja:'📝 あなたの日々を教えてください', ar:'📝 أخبرنا عن يومك', zh:'📝 告诉我们你的一天', es:'📝 Cuéntanos Tu Día' },
+  'Apa yang paling menyita pikiran belakangan ini?': { en:'What has been occupying your mind lately?', ja:'最近、何があなたの心を占めていますか？', ar:'ما الذي يشغل تفكيرك مؤخراً؟', zh:'最近什么事情最占据你的思绪？', es:'¿Qué ha estado ocupando tu mente últimamente?' },
+  'Ceritakan dengan bebas — pekerjaan, hubungan, keuangan, keluarga, atau apapun yang terasa berat...':
+    { en:'Tell freely — work, relationships, finances, family, or anything that feels heavy...',
+      ja:'自由に話してください — 仕事、人間関係、財政、家族、重く感じることなど...',
+      ar:'تحدث بحرية — العمل، العلاقات، المال، الأسرة، أو أي شيء يثقل...',
+      zh:'自由倾诉 — 工作、关系、财务、家庭，或任何感觉沉重的事...',
+      es:'Cuéntanos libremente — trabajo, relaciones, finanzas, familia, o lo que pese...' },
+  'Sumber tekanan terbesar (pilih semua)': { en:'Biggest stress sources (select all)', ja:'最大のストレス源（全て選択）', ar:'أكبر مصادر الضغط (اختر كل ما ينطبق)', zh:'最大压力来源（全选）', es:'Mayores fuentes de estrés (selecciona todos)' },
+  '🧠 Analisis Beban Mental':     { en:'🧠 Analyze Mental Load', ja:'🧠 精神的負荷を分析', ar:'🧠 تحليل العبء النفسي', zh:'🧠 分析心理负担', es:'🧠 Analizar Carga Mental' },
+  'Membaca beban mentalmu…':      { en:'Reading your mental load…', ja:'精神的負荷を読み取り中…', ar:'جاري قراءة عبئك النفسي…', zh:'正在读取您的心理负担…', es:'Leyendo tu carga mental…' },
+  'AI sedang menghitung pattern dan risiko': { en:'AI is calculating patterns and risks', ja:'AIがパターンとリスクを計算中', ar:'يحسب الذكاء الاصطناعي الأنماط والمخاطر', zh:'AI正在计算模式和风险', es:'IA calculando patrones y riesgos' },
+  '🌿 Langkah Pemulihan':         { en:'🌿 Recovery Steps', ja:'🌿 回復ステップ', ar:'🌿 خطوات التعافي', zh:'🌿 恢复步骤', es:'🌿 Pasos de Recuperación' },
+  '← Cek ulang':                  { en:'← Re-check', ja:'← 再確認', ar:'← إعادة الفحص', zh:'← 重新检查', es:'← Re-verificar' },
+  // Meds panel
+  'Mode 4 · Medication Checker':  { en:'Mode 4 · Medication Checker', ja:'モード4 · 薬チェッカー', ar:'وضع 4 · فاحص الأدوية', zh:'模式4 · 药物检查器', es:'Modo 4 · Verificador Meds' },
+  'Cek':                          { en:'Check', ja:'チェック', ar:'تحقق', zh:'检查', es:'Verifica' },
+  'interaksi obat':               { en:'medication interactions', ja:'薬の相互作用', ar:'تفاعلات الأدوية', zh:'药物相互作用', es:'interacciones de meds' },
+  'sebelum konsumsi':             { en:'before taking them', ja:'服用前に', ar:'قبل تناولها', zh:'服用之前', es:'antes de tomarlos' },
+  'Input semua obat yang kamu minum — resep dokter, obat warung, suplemen, jamu. AI deteksi kombinasi berbahaya.':
+    { en:'Enter all medications you take — prescriptions, OTC drugs, supplements, herbal. AI detects dangerous combinations.',
+      ja:'服用中の全ての薬を入力してください — 処方薬、市販薬、サプリメント。AIが危険な組み合わせを検出します。',
+      ar:'أدخل جميع الأدوية التي تتناولها. يكتشف الذكاء الاصطناعي المجموعات الخطرة.',
+      zh:'输入您服用的所有药物 — 处方药、非处方药、补剂。AI检测危险组合。',
+      es:'Ingresa todos tus medicamentos — recetas, OTC, suplementos. IA detecta combinaciones peligrosas.' },
+  '💊 Daftar Obat & Suplemen':    { en:'💊 Medications & Supplements List', ja:'💊 薬とサプリメントリスト', ar:'💊 قائمة الأدوية والمكملات', zh:'💊 药物与补剂清单', es:'💊 Lista de Meds y Suplementos' },
+  'Nama obat/suplemen (misal: Amlodipine, Vitamin C, Minyak Ikan)...': { en:'Drug/supplement name (e.g. Amlodipine, Vitamin C, Fish Oil)...', ja:'薬/サプリ名（例: アムロジピン、ビタミンC、フィッシュオイル）...', ar:'اسم الدواء/المكمل (مثال: أملوديبين، فيتامين C، زيت السمك)...', zh:'药物/补剂名称（例：氨氯地平、维生素C、鱼油）...', es:'Nombre del med/suplemento (ej: Amlodipina, Vitamina C)...' },
+  'Atau pilih yang umum':         { en:'Or select common ones', ja:'またはよく使われるものを選択', ar:'أو اختر الشائعة', zh:'或选择常见药物', es:'O selecciona los comunes' },
+  '🩺 Kondisi & Keluhan':         { en:'🩺 Conditions & Complaints', ja:'🩺 状態と不調', ar:'🩺 الحالات والشكاوى', zh:'🩺 病情与症状', es:'🩺 Condiciones y Síntomas' },
+  'Kondisi kesehatan yang relevan (opsional)': { en:'Relevant health conditions (optional)', ja:'関連する健康状態（任意）', ar:'الحالات الصحية ذات الصلة (اختياري)', zh:'相关健康状况（可选）', es:'Condiciones de salud relevantes (opcional)' },
+  'misal: diabetes, hipertensi, hamil...': { en:'e.g. diabetes, hypertension, pregnancy...', ja:'例: 糖尿病、高血圧、妊娠...', ar:'مثال: السكري، ارتفاع ضغط الدم، الحمل...', zh:'例如：糖尿病、高血压、怀孕...', es:'ej: diabetes, hipertensión, embarazo...' },
+  'Keluhan setelah minum obat (opsional)': { en:'Complaints after taking meds (optional)', ja:'薬を服用した後の不調（任意）', ar:'شكاوى بعد تناول الدواء (اختياري)', zh:'服药后的不适（可选）', es:'Síntomas después de tomar meds (opcional)' },
+  'misal: pusing, mual, jantung berdebar...': { en:'e.g. dizziness, nausea, heart palpitations...', ja:'例: めまい、吐き気、動悸...', ar:'مثال: دوخة، غثيان، خفقان...', zh:'例如：头晕、恶心、心悸...', es:'ej: mareos, náuseas, palpitaciones...' },
+  '🔍 Cek Interaksi Sekarang':    { en:'🔍 Check Interactions Now', ja:'🔍 今すぐ相互作用を確認', ar:'🔍 التحقق من التفاعلات الآن', zh:'🔍 立即检查相互作用', es:'🔍 Verificar Interacciones Ahora' },
+  'Mengecek interaksi obat…':     { en:'Checking drug interactions…', ja:'薬の相互作用を確認中…', ar:'جاري التحقق من تفاعلات الأدوية…', zh:'正在检查药物相互作用…', es:'Verificando interacciones de meds…' },
+  'AI sedang menganalisis kombinasi obatmu': { en:'AI is analyzing your medication combinations', ja:'AIがあなたの薬の組み合わせを分析中', ar:'يحلل الذكاء الاصطناعي مجموعات أدويتك', zh:'AI正在分析您的用药组合', es:'IA analizando tus combinaciones de meds' },
+  '💊 Hasil Pengecekan':          { en:'💊 Check Results', ja:'💊 確認結果', ar:'💊 نتائج الفحص', zh:'💊 检查结果', es:'💊 Resultados del Chequeo' },
+  '← Cek ulang obat':            { en:'← Re-check meds', ja:'← 薬を再確認', ar:'← إعادة فحص الأدوية', zh:'← 重新检查药物', es:'← Re-verificar meds' },
+  // Recovery panel
+  'Mode 5 · Recovery Tracker':   { en:'Mode 5 · Recovery Tracker', ja:'モード5 · 回復トラッカー', ar:'وضع 5 · تتبع التعافي', zh:'模式5 · 康复追踪', es:'Modo 5 · Rastreador Recuperación' },
+  'Panduan':                      { en:'Personalized', ja:'個人化された', ar:'دليل', zh:'个性化', es:'Guía' },
+  'pemulihan':                    { en:'recovery guide', ja:'回復ガイド', ar:'التعافي', zh:'康复', es:'de recuperación' },
+  'pasca sakit':                  { en:'post-illness', ja:'病後', ar:'ما بعد المرض', zh:'病后', es:'post-enfermedad' },
+  'Habis sakit dan bingung apa yang boleh dilakukan? AI buatkan protokol pemulihan spesifik untukmu.':
+    { en:'Just recovered and not sure what you can do? AI creates a specific recovery protocol just for you.',
+      ja:'回復したばかりで何をしていいかわからない？AIがあなた専用の回復プロトコルを作成します。',
+      ar:'تعافيت للتو ولست متأكداً مما يمكنك فعله؟ يضع الذكاء الاصطناعي بروتوكول تعافٍ خاصاً بك.',
+      zh:'刚刚康复却不知道能做什么？AI为您创建专属康复方案。',
+      es:'¿Recién recuperado y no sabes qué puedes hacer? IA crea un protocolo de recuperación específico.' },
+  '🤒 Penyakit yang Baru Sembuh': { en:'🤒 Recently Recovered Illness', ja:'🤒 最近回復した病気', ar:'🤒 المرض الذي تعافيت منه مؤخراً', zh:'🤒 近期康复的疾病', es:'🤒 Enfermedad Recién Superada' },
+  'Penyakit lainnya...':          { en:'Other illness...', ja:'その他の病気...', ar:'مرض آخر...', zh:'其他疾病...', es:'Otra enfermedad...' },
+  'Hari sejak dinyatakan sembuh / keluar RS': { en:'Days since declared recovered / discharged', ja:'回復宣言/退院からの日数', ar:'أيام منذ الشفاء / الخروج من المستشفى', zh:'康复/出院后的天数', es:'Días desde que se declaró recuperado / alta' },
+  '🤕 Gejala Sisa (jika ada)':    { en:'🤕 Residual Symptoms (if any)', ja:'🤕 残存症状（あれば）', ar:'🤕 الأعراض المتبقية (إن وجدت)', zh:'🤕 残留症状（如有）', es:'🤕 Síntomas Residuales (si los hay)' },
+  '🎯 Target Pemulihan':          { en:'🎯 Recovery Goals', ja:'🎯 回復目標', ar:'🎯 أهداف التعافي', zh:'🎯 康复目标', es:'🎯 Objetivos de Recuperación' },
+  '🩹 Buat Protokol Pemulihan':   { en:'🩹 Create Recovery Protocol', ja:'🩹 回復プロトコルを作成', ar:'🩹 إنشاء بروتوكول التعافي', zh:'🩹 创建康复方案', es:'🩹 Crear Protocolo de Recuperación' },
+  'Menyusun protokol pemulihanmu…': { en:'Preparing your recovery protocol…', ja:'回復プロトコルを作成中…', ar:'جاري إعداد بروتوكول تعافيك…', zh:'正在准备您的康复方案…', es:'Preparando tu protocolo de recuperación…' },
+  'AI sedang merancang panduan berdasarkan kondisimu': { en:'AI is designing a guide based on your condition', ja:'AIがあなたの状態に基づいたガイドを設計中', ar:'يصمم الذكاء الاصطناعي دليلاً بناءً على حالتك', zh:'AI正在根据您的状况设计指南', es:'IA diseñando guía basada en tu condición' },
+  '← Buat protokol baru':        { en:'← Create new protocol', ja:'← 新しいプロトコルを作成', ar:'← إنشاء بروتوكول جديد', zh:'← 创建新方案', es:'← Crear nuevo protocolo' },
+  // Memory panel
+  'Mode 6 · Family Memory':       { en:'Mode 6 · Family Memory', ja:'モード6 · 家族の記憶', ar:'وضع 6 · ذاكرة العائلة', zh:'模式6 · 家庭记忆', es:'Modo 6 · Memoria Familia' },
+  'Abadikan':                     { en:'Preserve', ja:'保存する', ar:'احتفظ بـ', zh:'保存', es:'Preserva' },
+  'cerita & wisdom':              { en:'stories & wisdom', ja:'物語と知恵', ar:'القصص والحكمة', zh:'故事与智慧', es:'historias y sabiduría' },
+  'keluargamu':                   { en:'of your family', ja:'あなたの家族の', ar:'عائلتك', zh:'你的家庭', es:'de tu familia' },
+  'Rekam cerita orang tua atau kakek-nenek. AI ubah jadi memoir indah yang bisa diwariskan ke generasi berikutnya.':
+    { en:'Record stories of parents or grandparents. AI transforms them into a beautiful memoir to pass down generations.',
+      ja:'両親や祖父母の話を記録してください。AIがそれを次世代に受け継ぐ美しい回想録に変えます。',
+      ar:'سجل قصص الوالدين أو الأجداد. يحولها الذكاء الاصطناعي إلى مذكرات جميلة للأجيال القادمة.',
+      zh:'记录父母或祖父母的故事。AI将其转化为美丽的回忆录，传承给下一代。',
+      es:'Graba historias de padres o abuelos. IA las transforma en memorias bellas para las generaciones futuras.' },
+  '👤 Tentang Narasumber':        { en:'👤 About the Subject', ja:'👤 語り手について', ar:'👤 عن الراوي', zh:'👤 关于讲述者', es:'👤 Sobre el Entrevistado' },
+  'Nama narasumber':              { en:'Subject\'s name', ja:'語り手の名前', ar:'اسم الراوي', zh:'讲述者姓名', es:'Nombre del entrevistado' },
+  'misal: Nenek Sari, Pak Budi...': { en:'e.g. Grandma Sari, Mr. Budi...', ja:'例: おばあちゃんのサリ、ブディさん...', ar:'مثال: جدتي سارة، السيد بودي...', zh:'例如：奶奶萨里，布迪先生...', es:'ej: Abuela Sari, Sr. Budi...' },
+  'Hubungan dengan kamu':         { en:'Relationship with you', ja:'あなたとの関係', ar:'علاقتك به/بها', zh:'与您的关系', es:'Relación contigo' },
+  'Usia narasumber (opsional)':   { en:'Subject\'s age (optional)', ja:'語り手の年齢（任意）', ar:'عمر الراوي (اختياري)', zh:'讲述者年龄（可选）', es:'Edad del entrevistado (opcional)' },
+  'misal: 72':                    { en:'e.g. 72', ja:'例: 72', ar:'مثال: 72', zh:'例如：72', es:'ej: 72' },
+  '📖 Cerita yang Akan Diabadikan': { en:'📖 Story to Preserve', ja:'📖 保存する物語', ar:'📖 القصة التي ستحفظها', zh:'📖 要保存的故事', es:'📖 Historia a Preservar' },
+  'Fokus cerita':                 { en:'Story focus', ja:'物語の焦点', ar:'تركيز القصة', zh:'故事焦点', es:'Enfoque de la historia' },
+  'Tulis atau paste cerita / transkrip percakapan di sini. Boleh bahasa daerah, campur Indonesia–Inggris, atau apapun.':
+    { en:'Write or paste the story / conversation transcript here. Any language, dialect, or mix is fine.',
+      ja:'ここに話や会話の文字起こしを書くか貼り付けてください。方言や混合言語でも構いません。',
+      ar:'اكتب أو الصق القصة / نص المحادثة هنا. أي لغة أو لهجة أو مزيج مقبول.',
+      zh:'在此写下或粘贴故事/对话记录。任何语言、方言或混合都可以。',
+      es:'Escribe o pega la historia / transcripción aquí. Cualquier idioma o mezcla está bien.' },
+  '📖 Abadikan Cerita':           { en:'📖 Preserve Story', ja:'📖 物語を保存', ar:'📖 احتفظ بالقصة', zh:'📖 保存故事', es:'📖 Preservar Historia' },
+  'Mengabadikan cerita…':         { en:'Preserving story…', ja:'物語を保存中…', ar:'جاري حفظ القصة…', zh:'正在保存故事…', es:'Preservando historia…' },
+  'AI menyusun memoir dari cerita yang kamu berikan': { en:'AI is composing a memoir from your story', ja:'AIがあなたの話から回想録を作成中', ar:'يؤلف الذكاء الاصطناعي مذكرات من قصتك', zh:'AI正在根据您的故事撰写回忆录', es:'IA componiendo una memoria de tu historia' },
+  'Memoir Tersimpan':             { en:'Memoir Saved', ja:'回想録保存済み', ar:'تم حفظ المذكرات', zh:'回忆录已保存', es:'Memoria Guardada' },
+  '📜 Cerita yang Diabadikan':    { en:'📜 Preserved Story', ja:'📜 保存された物語', ar:'📜 القصة المحفوظة', zh:'📜 已保存的故事', es:'📜 Historia Preservada' },
+  '📋 Copy Memoir':               { en:'📋 Copy Memoir', ja:'📋 回想録をコピー', ar:'📋 نسخ المذكرات', zh:'📋 复制回忆录', es:'📋 Copiar Memoria' },
+  '✓ Tersalin!':                  { en:'✓ Copied!', ja:'✓ コピーされました！', ar:'✓ تم النسخ!', zh:'✓ 已复制！', es:'✓ ¡Copiado!' },
+  '← Abadikan cerita lain':      { en:'← Preserve another story', ja:'← 別の物語を保存', ar:'← احتفظ بقصة أخرى', zh:'← 保存另一个故事', es:'← Preservar otra historia' },
+  // Topbar titles used in modeTitles
+  'Analisis Makanan':             { en:'Food Analysis', ja:'食事分析', ar:'تحليل الطعام', zh:'饮食分析', es:'Análisis Comida' },
+  'Foto makanan → gizi + cek kondisi kesehatan': { en:'Food photo → nutrition + health check', ja:'食事写真 → 栄養 + 健康チェック', ar:'صورة الطعام → تغذية + فحص صحي', zh:'食物照片 → 营养 + 健康检查', es:'Foto comida → nutrición + chequeo salud' },
+  'Sleep Quality Decoder':        { en:'Sleep Quality Decoder', ja:'睡眠品質デコーダー', ar:'محلل جودة النوم', zh:'睡眠质量解码器', es:'Decodificador Calidad Sueño' },
+  'Analisis pola & kualitas tidurmu': { en:'Analyze your sleep patterns & quality', ja:'睡眠パターンと品質を分析', ar:'تحليل أنماط نومك وجودته', zh:'分析您的睡眠模式和质量', es:'Analiza tus patrones y calidad de sueño' },
+  'Mental Load Detector':         { en:'Mental Load Detector', ja:'精神的負荷検出器', ar:'كاشف العبء النفسي', zh:'心理负担检测器', es:'Detector de Carga Mental' },
+  'Deteksi burnout sebelum terlambat': { en:'Detect burnout before it\'s too late', ja:'手遅れになる前にバーンアウトを検出', ar:'اكتشف الإجهاد قبل فوات الأوان', zh:'在为时已晚之前检测倦怠', es:'Detecta el burnout antes de que sea tarde' },
+  'Cek Interaksi Obat':           { en:'Check Medication Interactions', ja:'薬の相互作用を確認', ar:'تحقق من تفاعلات الأدوية', zh:'检查药物相互作用', es:'Verificar Interacciones de Meds' },
+  'Medication conflict checker':  { en:'Medication conflict checker', ja:'薬の相互作用チェッカー', ar:'فاحص تعارض الأدوية', zh:'药物冲突检查器', es:'Verificador conflicto meds' },
+  'Panduan pemulihan pasca sakit': { en:'Post-illness recovery guide', ja:'病後回復ガイド', ar:'دليل التعافي بعد المرض', zh:'病后康复指南', es:'Guía de recuperación post-enfermedad' },
+  'Family Memory Preserver':      { en:'Family Memory Preserver', ja:'家族の記憶保存器', ar:'حافظ ذاكرة العائلة', zh:'家庭记忆保存器', es:'Preservador Memoria Familia' },
+  'Abadikan cerita & wisdom keluarga': { en:'Preserve family stories & wisdom', ja:'家族の物語と知恵を保存', ar:'احتفظ بقصص الأسرة وحكمتها', zh:'保存家庭故事与智慧', es:'Preserva historias y sabiduría familiar' },
+  // World clock
+  'World Clock':                  { en:'World Clock', ja:'世界時計', ar:'ساعة العالم', zh:'世界时钟', es:'Reloj Mundial' },
+  'Current time around the world': { en:'Current time around the world', ja:'世界各地の現在時刻', ar:'الوقت الحالي حول العالم', zh:'世界各地当前时间', es:'Hora actual alrededor del mundo' },
+  'Your Local Time':              { en:'Your Local Time', ja:'あなたの現地時間', ar:'وقتك المحلي', zh:'您的当地时间', es:'Tu Hora Local' },
+  'Global Time':                  { en:'Global Time', ja:'グローバル時間', ar:'الوقت العالمي', zh:'全球时间', es:'Hora Global' },
+};
+
+// ── App State ──
+let hs = {
+  lang: 'en',
+  theme: 'auto', // 'dark' | 'light' | 'auto'
+  font: 'dm',
+};
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('hs_settings') || '{}');
+    if (s.lang) hs.lang = s.lang;
+    if (s.theme) hs.theme = s.theme;
+    if (s.font) hs.font = s.font;
+  } catch(e) {}
+}
+
+function saveSettings() {
+  localStorage.setItem('hs_settings', JSON.stringify(hs));
+}
+
+// ── Auto Language Detection ──
+function detectLang() {
+  const nav = navigator.language || navigator.userLanguage || 'en';
+  const code = nav.split('-')[0].toLowerCase();
+  if (LANGS[code]) return code;
+  if (code === 'ms') return 'id'; // Malay → Indonesian
+  return 'en';
+}
+
+// ── Theme system ──
+function applyTheme(theme) {
+  hs.theme = theme;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const hour = new Date().getHours();
+  const isNight = hour < 6 || hour >= 19;
+  let actual;
+  if (theme === 'auto') {
+    actual = (prefersDark || isNight) ? 'dark' : 'light';
+  } else {
+    actual = theme;
+  }
+  document.documentElement.setAttribute('data-theme', actual === 'light' ? 'light' : '');
+  saveSettings();
+  updateSettingsUI();
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (hs.theme === 'auto') applyTheme('auto');
+});
+
+// Re-check auto theme every minute (for time-based switching)
+setInterval(() => { if (hs.theme === 'auto') applyTheme('auto'); }, 60000);
+
+// ── Font system ──
+const FONTS = {
+  dm:      { label: 'DM Sans', desc: 'Clean & Modern', cls: 'font-dm',      family: "'DM Sans', sans-serif" },
+  outfit:  { label: 'Outfit',  desc: 'Friendly Round', cls: 'font-outfit',   family: "'Outfit', sans-serif" },
+  inter:   { label: 'Inter',   desc: 'Neutral Pro',    cls: 'font-inter',    family: "'Inter', sans-serif" },
+  syne:    { label: 'Syne',    desc: 'Bold Display',   cls: 'font-syne',     family: "'Syne', sans-serif" },
+  raleway: { label: 'Raleway', desc: 'Elegant Slim',   cls: 'font-raleway',  family: "'Raleway', sans-serif" },
+};
+
+function applyFont(key) {
+  hs.font = key;
+  const body = document.body;
+  Object.values(FONTS).forEach(f => body.classList.remove(f.cls));
+  body.classList.add(FONTS[key].cls);
+  body.style.fontFamily = FONTS[key].family;
+  saveSettings();
+  updateSettingsUI();
+}
+
+// ── i18n apply: full DOM text-node translation ──
+// We store original Indonesian text on first run, then translate all text nodes
+let _originals = null; // Map<textNode, original string>
+
+function snapshotOriginals() {
+  if (_originals) return;
+  _originals = new Map();
+  walkTextNodes(document.body, node => {
+    const t = node.textContent.trim();
+    if (t) _originals.set(node, node.textContent);
+  });
+}
+
+function walkTextNodes(root, cb) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent) return NodeFilter.FILTER_REJECT;
+      const tag = parent.tagName;
+      // Skip script, style, input placeholder handled separately
+      if (['SCRIPT','STYLE','NOSCRIPT'].includes(tag)) return NodeFilter.FILTER_REJECT;
+      if (node.textContent.trim() === '') return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let node;
+  while ((node = walker.nextNode())) cb(node);
+}
+
+function applyLang(code) {
+  if (!LANGS[code]) code = 'en';
+  hs.lang = code;
+
+  // Snapshot originals on first call (always Indonesian base)
+  snapshotOriginals();
+
+  if (code === 'id') {
+    // Restore original Indonesian text
+    _originals.forEach((orig, node) => {
+      if (node.isConnected) node.textContent = orig;
+    });
+  } else {
+    // Translate each stored original node
+    _originals.forEach((orig, node) => {
+      if (!node.isConnected) return;
+      const trimmed = orig.trim();
+      const tr = T[trimmed];
+      if (tr && tr[code]) {
+        // Preserve surrounding whitespace
+        const leading  = orig.match(/^\s*/)[0];
+        const trailing = orig.match(/\s*$/)[0];
+        node.textContent = leading + tr[code] + trailing;
+      } else {
+        // Partial match: check if orig contains any known key as substring
+        let result = orig;
+        let changed = false;
+        for (const [key, translations] of Object.entries(T)) {
+          if (translations[code] && orig.includes(key)) {
+            result = result.split(key).join(translations[code]);
+            changed = true;
+          }
+        }
+        if (changed) node.textContent = result;
+      }
+    });
+  }
+
+  // Also translate placeholder attributes
+  document.querySelectorAll('[placeholder]').forEach(el => {
+    const orig = el.dataset.origPlaceholder || el.getAttribute('placeholder');
+    el.dataset.origPlaceholder = orig;
+    if (code === 'id') {
+      el.setAttribute('placeholder', orig);
+    } else {
+      const tr = T[orig.trim()];
+      if (tr && tr[code]) el.setAttribute('placeholder', tr[code]);
+    }
+  });
+
+  // RTL for Arabic
+  document.documentElement.dir = code === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = code;
+
+  // Update topbar titles for current mode
+  const currentMode = [...document.querySelectorAll('.mode-panel.active')][0]?.id?.replace('panel-', '') || 'food';
+  const titles = modeTitles[currentMode];
+  if (titles) {
+    const t0 = T[titles[0]]; const t1 = T[titles[1]];
+    document.getElementById('topbarTitle').textContent = (code !== 'id' && t0 && t0[code]) ? t0[code] : titles[0];
+    document.getElementById('topbarSub').textContent   = (code !== 'id' && t1 && t1[code]) ? t1[code] : titles[1];
+  }
+
+  saveSettings();
+  updateSettingsUI();
+}
+
+// ── Build & inject Settings drawer ──
+function buildSettingsDrawer() {
+  if (document.getElementById('settingsOverlay')) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'settings-overlay';
+  overlay.id = 'settingsOverlay';
+  overlay.onclick = (e) => { if (e.target === overlay) closeSettings(); };
+
+  overlay.innerHTML = `
+    <div class="settings-drawer">
+      <div class="settings-header">
+        <div class="settings-title" data-i18n="settings_title">Settings</div>
+        <button class="settings-close" onclick="closeSettings()">✕</button>
+      </div>
+      <div class="settings-body">
+
+        <!-- THEME -->
+        <div class="settings-section">
+          <div class="settings-section-label" data-i18n="settings_theme">TEMA</div>
+          <div class="theme-toggle-row">
+            <div class="theme-opt" id="themeOptDark" onclick="applyTheme('dark')">
+              <span class="theme-opt-icon">🌑</span>
+              <span data-i18n="theme_dark">Dark</span>
+            </div>
+            <div class="theme-opt" id="themeOptAuto" onclick="applyTheme('auto')">
+              <span class="theme-opt-icon">🌓</span>
+              <span data-i18n="theme_auto">Auto</span>
+            </div>
+            <div class="theme-opt" id="themeOptLight" onclick="applyTheme('light')">
+              <span class="theme-opt-icon">☀️</span>
+              <span data-i18n="theme_light">Light</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- LANGUAGE -->
+        <div class="settings-section">
+          <div class="settings-section-label" data-i18n="settings_lang">BAHASA</div>
+          <div class="lang-grid">
+            ${Object.values(LANGS).map(l => `
+              <div class="lang-opt" id="langOpt_${l.code}" onclick="applyLang('${l.code}')">
+                <span class="lang-flag">${l.flag}</span>
+                <span>${l.name}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- FONT -->
+        <div class="settings-section">
+          <div class="settings-section-label" data-i18n="settings_font">FONT</div>
+          <div class="font-opts">
+            ${Object.entries(FONTS).map(([k, f]) => `
+              <div class="font-opt-row" id="fontOpt_${k}" onclick="applyFont('${k}')">
+                <div>
+                  <div class="font-opt-name" style="font-family:${f.family}">${f.label}</div>
+                  <div class="font-opt-meta">${f.desc}</div>
+                </div>
+                <div class="font-check">✓</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- WORLD CLOCK -->
+        ${buildWorldClockSection()}
+
+        <!-- APP INFO -->
+        <div class="settings-section" style="margin-bottom:8px;">
+          <div class="settings-section-label">ABOUT</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:8px;">🌿</div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">HealSync</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">AI Health Companion · v1.0.0</div>
+            <div class="app-info-made" style="justify-content:center;font-size:12px;">
+              Made with <span class="app-info-heart" style="margin:0 3px;">♥</span> for your health journey
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;line-height:1.6;">
+              © 2026 HealSync · All rights reserved
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+}
+
+function openSettings() {
+  const isNew = !document.getElementById('settingsOverlay');
+  buildSettingsDrawer();
+  document.getElementById('settingsOverlay').classList.add('open');
+  updateSettingsUI();
+  // If drawer was just built and lang != id, translate new nodes
+  if (isNew && hs.lang !== 'id') {
+    _originals = null; // force full re-snapshot including new drawer
+    applyLang(hs.lang);
+  }
+}
+
+function closeSettings() {
+  const el = document.getElementById('settingsOverlay');
+  if (el) el.classList.remove('open');
+}
+
+function updateSettingsUI() {
+  // Theme
+  ['dark','auto','light'].forEach(t => {
+    const el = document.getElementById('themeOpt' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (el) el.classList.toggle('active', hs.theme === t);
+  });
+  // Lang
+  Object.keys(LANGS).forEach(code => {
+    const el = document.getElementById('langOpt_' + code);
+    if (el) el.classList.toggle('active', hs.lang === code);
+  });
+  // Font
+  Object.keys(FONTS).forEach(k => {
+    const el = document.getElementById('fontOpt_' + k);
+    if (el) el.classList.toggle('active', hs.font === k);
+  });
+}
+
+// ── Build & inject World Clock panel ──
+const WORLD_CLOCKS = [
+  { city: 'Jakarta',      flag: '🇮🇩', tz: 'Asia/Jakarta',      local: true },
+  { city: 'Singapore',    flag: '🇸🇬', tz: 'Asia/Singapore' },
+  { city: 'Tokyo',        flag: '🇯🇵', tz: 'Asia/Tokyo' },
+  { city: 'Dubai',        flag: '🇦🇪', tz: 'Asia/Dubai' },
+  { city: 'London',       flag: '🇬🇧', tz: 'Europe/London' },
+  { city: 'Paris',        flag: '🇫🇷', tz: 'Europe/Paris' },
+  { city: 'New York',     flag: '🇺🇸', tz: 'America/New_York' },
+  { city: 'Los Angeles',  flag: '🇺🇸', tz: 'America/Los_Angeles' },
+  { city: 'Sydney',       flag: '🇦🇺', tz: 'Australia/Sydney' },
+  { city: 'Mumbai',       flag: '🇮🇳', tz: 'Asia/Kolkata' },
+  { city: 'Seoul',        flag: '🇰🇷', tz: 'Asia/Seoul' },
+  { city: 'São Paulo',    flag: '🇧🇷', tz: 'America/Sao_Paulo' },
+];
+
+function buildWorldClockSection() {
+  // Returns HTML string for world clock section inside settings drawer
+  return `
+    <div class="settings-section" id="settingsClockSection">
+      <div class="settings-section-label">🌍 WORLD CLOCK</div>
+
+      <!-- Local big clock -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;text-align:center;margin-bottom:12px;">
+        <div id="localBigClock" style="font-family:'DM Mono',monospace;font-size:38px;font-weight:600;color:var(--green);letter-spacing:-1px;line-height:1;">--:--:--</div>
+        <div id="localBigDate" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);margin-top:6px;"></div>
+        <div id="localTz" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px;"></div>
+      </div>
+
+      <!-- Grid clocks -->
+      <div class="world-clock-grid" id="worldClockGrid">
+        ${WORLD_CLOCKS.map(c => `
+          <div class="clock-card ${c.local ? 'is-local' : ''}" id="clock_${c.tz.replace(/\//g,'_')}">
+            <div class="clock-flag">${c.flag}</div>
+            <div class="clock-city">${c.city}</div>
+            <div class="clock-time">--:--</div>
+            <div class="clock-date">---</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function updateClocks() {
+  // Big local clock
+  const now = new Date();
+  const bigEl = document.getElementById('localBigClock');
+  const dateEl = document.getElementById('localBigDate');
+  const tzEl = document.getElementById('localTz');
+  if (bigEl) {
+    bigEl.textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    tzEl.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
+  // World clocks
+  WORLD_CLOCKS.forEach(c => {
+    const id = 'clock_' + c.tz.replace(/\//g, '_');
+    const el = document.getElementById(id);
+    if (!el) return;
+    try {
+      const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: c.tz });
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: c.tz });
+      el.querySelector('.clock-time').textContent = timeStr;
+      el.querySelector('.clock-date').textContent = dateStr;
+    } catch(e) {}
+  });
+}
+
+// ── Init ──
+loadSettings();
+
+// Detect language on first visit
+if (!localStorage.getItem('hs_settings')) {
+  hs.lang = detectLang();
+}
+
+// Apply settings
+applyTheme(hs.theme);
+applyFont(hs.font);
+
+// Apply language after DOM is fully ready
+setTimeout(() => { applyLang(hs.lang); }, 50);
+
+// Start clock (updates whenever settings drawer is open)
+updateClocks();
+setInterval(updateClocks, 1000);
+</script>
+</body>
+</html>
